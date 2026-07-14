@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Check shell scripts
+        run: |
+          bash -n install.sh uninstall.sh docker/entrypoint.sh
+          shellcheck install.sh uninstall.sh docker/entrypoint.sh
+
+      - name: Run Python tests
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Validate Compose configuration
+        run: docker compose --env-file .env.example config --quiet
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: false
+          tags: random-ipv6-socks:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+

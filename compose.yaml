@@ -1,0 +1,54 @@
+name: random-ipv6-socks
+
+services:
+  proxy:
+    build:
+      context: .
+      args:
+        XRAY_VERSION: ${XRAY_VERSION:-26.3.27}
+    image: random-ipv6-socks:${XRAY_VERSION:-26.3.27}
+    container_name: random-ipv6-socks
+    network_mode: host
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - NET_ADMIN
+      - NET_RAW
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    environment:
+      SOCKS_PORT: ${SOCKS_PORT:-12345}
+      SOCKS_USERNAME: ${SOCKS_USERNAME:?Set SOCKS_USERNAME in .env}
+      SOCKS_PASSWORD: ${SOCKS_PASSWORD:?Set SOCKS_PASSWORD in .env}
+      SOCKS_LISTEN: ${SOCKS_LISTEN:-0.0.0.0}
+      SOCKS_UDP: ${SOCKS_UDP:-true}
+      SOCKS_UDP_ADVERTISE_IP: ${SOCKS_UDP_ADVERTISE_IP:-}
+      IPV6_INTERFACE: ${IPV6_INTERFACE:-auto}
+      IPV6_POOL: ${IPV6_POOL:-}
+      IPV6_POOL_PREFIX_LEN: ${IPV6_POOL_PREFIX_LEN:-120}
+      IPV6_POOL_SEED: ${IPV6_POOL_SEED:-random-ipv6-socks}
+      ALLOW_LARGE_IPV6_POOL: ${ALLOW_LARGE_IPV6_POOL:-false}
+      XRAY_LOG_LEVEL: ${XRAY_LOG_LEVEL:-warning}
+    volumes:
+      - ./data/logs:/var/log/xray
+    tmpfs:
+      - /run:size=16m,mode=0755
+      - /tmp:size=16m,mode=1777
+    ulimits:
+      nofile:
+        soft: 100000
+        hard: 100000
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /run/ndppd.pid && test -r /proc/$$(cat /run/ndppd.pid)/stat && test -s /run/xray.pid && test -r /proc/$$(cat /run/xray.pid)/stat"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    stop_grace_period: 10s
