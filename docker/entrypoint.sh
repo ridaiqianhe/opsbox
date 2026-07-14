@@ -165,7 +165,7 @@ xray_pid=$!
 printf '%s\n' "$xray_pid" > /run/xray.pid
 
 # Invoked indirectly by the signal and exit traps below.
-# shellcheck disable=SC2329
+# shellcheck disable=SC2317,SC2329
 cleanup() {
     trap - TERM INT EXIT
     set +e
