@@ -1,6 +1,7 @@
 # Random IPv6 SOCKS5
 
 [![CI](https://github.com/ridaiqianhe/random-ipv6-socks/actions/workflows/ci.yml/badge.svg)](https://github.com/ridaiqianhe/random-ipv6-socks/actions/workflows/ci.yml)
+[![Publish GHCR](https://github.com/ridaiqianhe/random-ipv6-socks/actions/workflows/publish.yml/badge.svg)](https://github.com/ridaiqianhe/random-ipv6-socks/actions/workflows/publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 使用 Xray 提供带账号密码认证的 SOCKS5，并为每个新连接从 IPv6 CIDR 中随机选择出口地址。容器启动时自动恢复 `ip_nonlocal_bind`、本地路由和 NDP 代理。
@@ -16,6 +17,7 @@ Authenticated Xray SOCKS5 with a random IPv6 source address per connection.
 - 非特权容器，根文件系统只读，仅授予必要 capabilities。
 - Xray 与 `ndppd` 双进程健康检查，支持异常和重启恢复。
 - 支持 `amd64` 和 `arm64`。
+- 默认从 GHCR 拉取预构建多架构镜像，也支持完全本地构建。
 
 ## 前提
 
@@ -34,6 +36,12 @@ nano .env
 sudo ./install.sh
 ```
 
+默认拉取：
+
+```text
+ghcr.io/ridaiqianhe/random-ipv6-socks:latest
+```
+
 必须修改：
 
 ```dotenv
@@ -44,6 +52,15 @@ SOCKS_PASSWORD=your-strong-password
 
 凭据包含 `#`、`$` 或空格时，请使用 Compose `.env` 支持的单引号格式。修改参数后再次运行 `sudo ./install.sh` 即可重建容器。
 监听端口必须在 `1024-65535` 范围内。
+
+如需从 Dockerfile 本地构建，在 `.env` 中设置：
+
+```dotenv
+LOCAL_BUILD=true
+XRAY_VERSION=26.3.27
+```
+
+也可以通过 `IMAGE_TAG=1.0.0` 固定预构建镜像版本，避免自动跟随 `latest`。
 
 `IPV6_INTERFACE=auto` 会选择默认 IPv6 路由所在网卡。`IPV6_POOL` 留空时，项目会从网卡前缀稳定生成一个 `/120` 地址池；也可手动指定：
 

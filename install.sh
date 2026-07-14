@@ -55,24 +55,32 @@ if command -v logrotate >/dev/null 2>&1; then
     install -m 0644 -o root -g root "$logrotate_file" /etc/logrotate.d/random-ipv6-socks
 fi
 
-docker compose config --quiet
-docker compose up -d --build
+compose=(docker compose)
+if grep -Eiq '^LOCAL_BUILD=(1|true|yes|on)$' .env; then
+    compose+=(-f compose.yaml -f compose.build.yaml)
+    "${compose[@]}" config --quiet
+    "${compose[@]}" up -d --build
+else
+    "${compose[@]}" config --quiet
+    "${compose[@]}" pull
+    "${compose[@]}" up -d --no-build
+fi
 
 for _ in $(seq 1 45); do
     status=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' random-ipv6-socks 2>/dev/null || true)
     case "$status" in
         healthy|running)
-            docker compose ps
+            "${compose[@]}" ps
             exit 0
             ;;
         unhealthy|exited|dead)
-            docker compose logs --tail=100
+            "${compose[@]}" logs --tail=100
             exit 1
             ;;
     esac
     sleep 2
 done
 
-docker compose logs --tail=100
+"${compose[@]}" logs --tail=100
 echo "Container did not become healthy in time." >&2
 exit 1

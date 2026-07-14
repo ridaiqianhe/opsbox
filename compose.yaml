@@ -2,11 +2,8 @@ name: random-ipv6-socks
 
 services:
   proxy:
-    build:
-      context: .
-      args:
-        XRAY_VERSION: ${XRAY_VERSION:-26.3.27}
-    image: random-ipv6-socks:${XRAY_VERSION:-26.3.27}
+    image: ghcr.io/ridaiqianhe/random-ipv6-socks:${IMAGE_TAG:-latest}
+    pull_policy: always
     container_name: random-ipv6-socks
     network_mode: host
     restart: unless-stopped

@@ -28,7 +28,9 @@ jobs:
         run: python3 -m unittest discover -s tests -v
 
       - name: Validate Compose configuration
-        run: docker compose --env-file .env.example config --quiet
+        run: |
+          docker compose --env-file .env.example config --quiet
+          docker compose --env-file .env.example -f compose.yaml -f compose.build.yaml config --quiet
 
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v4
