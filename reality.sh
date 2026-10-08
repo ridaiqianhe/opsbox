@@ -22,6 +22,34 @@ log_error() { echo -e "${RED}[ERROR] $1${NC}" >&2; }
 
 [ "$(id -u)" != "0" ] && { log_error "请以 root 权限运行此脚本"; exit 1; }
 
+ensure_curl() {
+    command -v curl >/dev/null 2>&1 && return 0
+    log_info "安装下载依赖 curl 和 CA 证书..."
+    if command -v apt-get >/dev/null 2>&1; then
+        apt-get update || { log_error "更新软件包索引失败"; return 1; }
+        DEBIAN_FRONTEND=noninteractive apt-get install -y curl ca-certificates || return 1
+    elif command -v dnf >/dev/null 2>&1; then
+        dnf install -y curl ca-certificates || return 1
+    elif command -v yum >/dev/null 2>&1; then
+        yum install -y curl ca-certificates || return 1
+    else
+        log_error "请先安装 curl 和 ca-certificates，未找到 apt/dnf/yum"
+        return 1
+    fi
+    command -v curl >/dev/null 2>&1 || { log_error "curl 安装失败，已停止操作"; return 1; }
+}
+
+run_xray_installer() {
+    local content
+    ensure_curl || return 1
+    content="$(curl -fsSL --retry 2 --connect-timeout 15 --max-time 120 "$INSTALLER")" || {
+        log_error "下载 Xray 官方安装器失败，已停止操作"
+        return 1
+    }
+    [ -n "$content" ] || { log_error "Xray 官方安装器内容为空"; return 1; }
+    bash -c "$content" @ "$@"
+}
+
 get_host_ip() {
     local ip
     ip=$(curl -s --connect-timeout 10 http://checkip.amazonaws.com 2>/dev/null)
@@ -30,11 +58,9 @@ get_host_ip() {
 }
 
 install_reality() {
-    command -v curl >/dev/null 2>&1 || { apt-get install -y curl 2>/dev/null || yum install -y curl 2>/dev/null; }
-
     # 1. 安装 Xray 官方二进制(已装则升级)
     log_info "安装/更新 Xray-core (官方脚本)..."
-    if ! bash -c "$(curl -L "$INSTALLER")" @ install; then
+    if ! run_xray_installer install; then
         log_error "Xray 安装失败"; return 1
     fi
     [ -x "$XRAY_BIN" ] || { log_error "未找到 xray 可执行文件"; return 1; }
@@ -163,7 +189,7 @@ EOF
 uninstall_reality() {
     read -p "$(echo -e "${YELLOW}确认卸载 Xray(含 Reality)？[输入 yes 确认]: ${NC}")" a
     [ "$a" != "yes" ] && { log_info "已取消"; return 0; }
-    bash -c "$(curl -L "$INSTALLER")" @ remove --purge
+    run_xray_installer remove --purge || { log_error "Xray 卸载失败"; return 1; }
     rm -f "$META_FILE"
     log_info "Xray 已卸载"
 }
