@@ -63,6 +63,12 @@ bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/he
 
 所有脚本都需要 root 权限。
 
+### 更新已安装的服务
+
+重新下载并运行最新脚本，再选择更新菜单。Snell、SS2022、TUIC、AnyTLS、AnyTLS + Reality 和 SOCKS5/HTTP 会检查上游版本；TUIC 只选择正式版本号，排除开发版。Hysteria2 和 VLESS + Reality 的菜单第 4 项分别更新 Hysteria 和 Xray，保留端口、凭据和证书，并在更新前备份配置。不要使用重新安装来代替更新，否则可能重新生成凭据。
+
+2026-10-10 核对的上游版本：sing-box v1.14.3、Hysteria v2.13.0、shadowsocks-rust v1.25.0、TUIC 稳定版 v1.8.11、Snell v6.0.0rc、Xray v26.3.27、Shadow-TLS v0.2.25、Trojan-Go v0.10.6。脚本动态检查上游，这份核对记录不锁定安装版本。
+
 ### AnyTLS 模式说明
 
 `anytls.sh` 和 `anytls-reality.sh` 都直接使用官方 sing-box，不再安装旧版独立 AnyTLS 服务端。每次执行安装/更新都会检查官方最新稳定版并升级旧版本，不会自动安装 beta。普通 AnyTLS 使用自签名 TLS 证书，脚本会输出 Surge、mihomo、sing-box 和标准 `anytls://` 导入配置；使用自签名证书时客户端需要开启 `skip-cert-verify`/`insecure`，Surge 也可以使用脚本输出的证书 SHA-256 指纹进行固定。

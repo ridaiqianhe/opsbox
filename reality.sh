@@ -186,6 +186,17 @@ EOF
     show_config
 }
 
+update_reality() {
+    [ -f "$CONF_FILE" ] || { log_error "请先安装 Reality"; return 1; }
+    local backup="$CONF_FILE.$(date +%Y%m%d_%H%M%S).bak"
+    cp -p "$CONF_FILE" "$backup" || return 1
+    run_xray_installer install || return 1
+    "$XRAY_BIN" run -test -config "$CONF_FILE" || return 1
+    systemctl restart xray || return 1
+    systemctl is-active --quiet xray || return 1
+    log_info "Xray 已更新，保留 Reality 配置；备份: $backup"
+}
+
 uninstall_reality() {
     read -p "$(echo -e "${YELLOW}确认卸载 Xray(含 Reality)？[输入 yes 确认]: ${NC}")" a
     [ "$a" != "yes" ] && { log_info "已取消"; return 0; }
@@ -276,13 +287,15 @@ main() {
         echo -e "  ${GREEN}1.${NC} 💎 安装 VLESS+Reality"
         echo -e "  ${GREEN}2.${NC} 🗑️  卸载 (含 Xray)"
         echo -e "  ${GREEN}3.${NC} 📋 查看配置"
+        echo -e "  ${GREEN}4.${NC} ⬆️ 更新 Xray（保留配置）"
         echo -e "  ${YELLOW}0.${NC} 👋 退出"
         echo ""
-        read -p "$(echo -e "  ${CYAN}请输入选项 [0-3]: ${NC}")" choice
+        read -p "$(echo -e "  ${CYAN}请输入选项 [0-4]: ${NC}")" choice
         case $choice in
             1) install_reality ;;
             2) uninstall_reality ;;
             3) show_config ;;
+            4) update_reality ;;
             0) echo -e "  ${PURPLE}バイバイ~ (｡･ω･)ﾉﾞ${NC}"; exit 0 ;;
             *) echo -e "  ${YELLOW}(・_・?) 没有「$choice」这个选项~${NC}"; sleep 1; continue ;;
         esac

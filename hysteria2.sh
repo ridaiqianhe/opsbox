@@ -50,9 +50,30 @@ EOF
     echo ""
 }
 
+run_hy2_installer() {
+    local installer
+    if ! command -v curl >/dev/null 2>&1; then
+        $PACKAGE_INSTALL curl ca-certificates || return 1
+    fi
+    installer="$(curl -fsSL --retry 2 --connect-timeout 15 --max-time 120 https://get.hy2.sh/)" || return 1
+    [ -n "$installer" ] || return 1
+    bash -c "$installer" @ "$@"
+}
+
+update_hy2() {
+    [ -f /etc/hysteria/config.yaml ] || { echo "请先安装 Hysteria2"; return 1; }
+    local backup
+    backup="/etc/hysteria/config.yaml.$(date +%Y%m%d_%H%M%S).bak"
+    cp -p /etc/hysteria/config.yaml "$backup" || return 1
+    run_hy2_installer || { echo "Hysteria2 更新失败，配置备份: $backup"; return 1; }
+    systemctl restart hysteria-server.service || return 1
+    systemctl is-active --quiet hysteria-server.service || return 1
+    echo "Hysteria2 已更新，保留原端口、密码和证书；配置备份: $backup"
+}
+
 install_hy2() {
-    $PACKAGE_INSTALL unzip wget curl openssl
-    bash <(curl -fsSL https://get.hy2.sh/)
+    $PACKAGE_INSTALL unzip wget curl openssl ca-certificates || return 1
+    run_hy2_installer || return 1
 
     # 自签证书
     openssl req -x509 -nodes -newkey ec:<(openssl ecparam -name prime256v1) \
@@ -135,14 +156,16 @@ while true; do
     echo -e "  ${GREEN}1.${NC} 🚀 安装 Hysteria2"
     echo -e "  ${GREEN}2.${NC} 🗑️  卸载 Hysteria2"
     echo -e "  ${GREEN}3.${NC} 📋 查看配置"
+    echo -e "  ${GREEN}4.${NC} ⬆️ 更新 Hysteria2（保留配置）"
     echo -e "  ${YELLOW}0.${NC} 👋 退出"
     echo ""
-    read -p "$(echo -e "  ${CYAN}请输入选项 [0-3]: ${NC}")" OPTION
+    read -p "$(echo -e "  ${CYAN}请输入选项 [0-4]: ${NC}")" OPTION
 
     case $OPTION in
         1) install_hy2 ;;
         2) uninstall_hy2 ;;
         3) view_hy2 ;;
+        4) update_hy2 ;;
         0) echo -e "  ${PURPLE}バイバイ~ (｡･ω･)ﾉﾞ${NC}"; exit 0 ;;
         *) echo -e "  ${YELLOW}(・_・?) 没有「$OPTION」这个选项~${NC}"; sleep 1; continue ;;
     esac
