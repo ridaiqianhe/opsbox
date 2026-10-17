@@ -28,7 +28,7 @@ FROM debian:bookworm-slim
 ARG XRAY_VERSION=26.3.27
 
 LABEL org.opencontainers.image.title="Random IPv6 SOCKS5" \
-      org.opencontainers.image.description="Authenticated Xray SOCKS5 with random IPv6 CIDR egress" \
+      org.opencontainers.image.description="Authenticated Xray SOCKS5 with random IPv6 and optional IPv4 egress" \
       org.opencontainers.image.source="https://github.com/ridaiqianhe/random-ipv6-socks" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.version="$XRAY_VERSION"
@@ -44,8 +44,10 @@ RUN apt-get update \
 COPY --from=downloader /out/xray /usr/local/bin/xray
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY docker/select_pool.py /usr/local/libexec/select_pool.py
+COPY docker/xray-config.jq /usr/local/libexec/xray-config.jq
 
-RUN chmod 0755 /usr/local/bin/entrypoint.sh /usr/local/libexec/select_pool.py
+RUN chmod 0755 /usr/local/bin/entrypoint.sh /usr/local/libexec/select_pool.py \
+    && chmod 0644 /usr/local/libexec/xray-config.jq
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint.sh"]
 STOPSIGNAL SIGTERM

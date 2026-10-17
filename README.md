@@ -4,15 +4,16 @@
 [![Publish GHCR](https://github.com/ridaiqianhe/random-ipv6-socks/actions/workflows/publish.yml/badge.svg)](https://github.com/ridaiqianhe/random-ipv6-socks/actions/workflows/publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-使用 Xray 提供带账号密码认证的 SOCKS5，并为每个新连接从 IPv6 CIDR 中随机选择出口地址。容器启动时自动恢复 `ip_nonlocal_bind`、本地路由和 NDP 代理。
+使用 Xray 提供带账号密码认证的 SOCKS5，并为每个新连接从 IPv6 CIDR 中随机选择出口地址。还可启用独立端口，强制使用服务器 IPv4 出口。容器启动时自动恢复 `ip_nonlocal_bind`、本地路由和 NDP 代理。
 
-Authenticated Xray SOCKS5 with a random IPv6 source address per connection.
+Authenticated Xray SOCKS5 with a random IPv6 source address per connection and an optional IPv4 egress listener.
 
 ## 特性
 
 - 自动检测默认 IPv6 网卡和全局前缀。
 - 自动生成稳定的 `/120` 随机出口池，也支持手动指定 CIDR。
 - 使用 `ndppd` 处理 NDP 回程，每次启动自动恢复 local route。
+- 可选第二个 SOCKS5 端口，固定使用服务器 IPv4 出口。
 - 支持 SOCKS5 用户名/密码、TCP 和可选 UDP。
 - 非特权容器，根文件系统只读，仅授予必要 capabilities。
 - Xray 与 `ndppd` 双进程健康检查，支持异常和重启恢复。
@@ -53,6 +54,15 @@ SOCKS_PASSWORD=your-strong-password
 凭据包含 `#`、`$` 或空格时，请使用 Compose `.env` 支持的单引号格式。修改参数后再次运行 `sudo ./install.sh` 即可重建容器。
 监听端口必须在 `1024-65535` 范围内。
 
+如需同时启用 IPv4 出口端口：
+
+```dotenv
+IPV4_PROXY_ENABLED=true
+IPV4_SOCKS_PORT=12346
+```
+
+IPv4 端口复用 `SOCKS_USERNAME` 和 `SOCKS_PASSWORD`。`IPV4_SOCKS_PORT` 必须与 `SOCKS_PORT` 不同；也可通过 `IPV4_SOCKS_LISTEN`、`IPV4_SOCKS_UDP` 和 `IPV4_SOCKS_UDP_ADVERTISE_IP` 单独调整监听和 UDP 设置。
+
 如需从 Dockerfile 本地构建，在 `.env` 中设置：
 
 ```dotenv
@@ -76,6 +86,14 @@ curl --proxy 'socks5h://USER:PASSWORD@SERVER_IP:PORT' https://api.ip.sb/ip
 ```
 
 多次执行会看到地址在配置的 IPv6 池中随机变化。随机选择允许重复，不保证连续两次一定不同。
+
+启用 IPv4 端口后，可用相同凭据访问 `IPV4_SOCKS_PORT`：
+
+```bash
+curl --proxy 'socks5h://USER:PASSWORD@SERVER_IP:12346' https://api4.ipify.org
+```
+
+IPv4 入口使用独立的 Xray 路由和 Freedom 出口，并将域名解析及出站源地址限制为 IPv4；原 `SOCKS_PORT` 仍保持随机 IPv6 出口。
 
 ## 运维
 

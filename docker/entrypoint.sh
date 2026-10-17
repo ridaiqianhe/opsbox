@@ -31,6 +31,11 @@ SOCKS_PASSWORD="${SOCKS_PASSWORD:-}"
 SOCKS_LISTEN="${SOCKS_LISTEN:-0.0.0.0}"
 SOCKS_UDP="${SOCKS_UDP:-true}"
 SOCKS_UDP_ADVERTISE_IP="${SOCKS_UDP_ADVERTISE_IP:-}"
+IPV4_PROXY_ENABLED="${IPV4_PROXY_ENABLED:-false}"
+IPV4_SOCKS_PORT="${IPV4_SOCKS_PORT:-12346}"
+IPV4_SOCKS_LISTEN="${IPV4_SOCKS_LISTEN:-0.0.0.0}"
+IPV4_SOCKS_UDP="${IPV4_SOCKS_UDP:-true}"
+IPV4_SOCKS_UDP_ADVERTISE_IP="${IPV4_SOCKS_UDP_ADVERTISE_IP:-}"
 IPV6_INTERFACE="${IPV6_INTERFACE:-auto}"
 IPV6_POOL="${IPV6_POOL:-}"
 IPV6_POOL_PREFIX_LEN="${IPV6_POOL_PREFIX_LEN:-120}"
@@ -42,6 +47,16 @@ XRAY_LOG_LEVEL="${XRAY_LOG_LEVEL:-warning}"
 (( SOCKS_PORT >= 1024 && SOCKS_PORT <= 65535 )) || fail "SOCKS_PORT must be between 1024 and 65535"
 validate_credential "SOCKS_USERNAME" "$SOCKS_USERNAME"
 validate_credential "SOCKS_PASSWORD" "$SOCKS_PASSWORD"
+
+ipv4_enabled_json=false
+if is_true "$IPV4_PROXY_ENABLED"; then
+    ipv4_enabled_json=true
+    [[ "$IPV4_SOCKS_PORT" =~ ^[0-9]+$ ]] || fail "IPV4_SOCKS_PORT must be numeric"
+    (( IPV4_SOCKS_PORT >= 1024 && IPV4_SOCKS_PORT <= 65535 )) \
+        || fail "IPV4_SOCKS_PORT must be between 1024 and 65535"
+    (( IPV4_SOCKS_PORT != SOCKS_PORT )) \
+        || fail "IPV4_SOCKS_PORT must differ from SOCKS_PORT"
+fi
 
 case "$XRAY_LOG_LEVEL" in
     debug|info|warning|error|none) ;;
@@ -110,6 +125,11 @@ if is_true "$SOCKS_UDP"; then
     udp_json=true
 fi
 
+ipv4_udp_json=false
+if is_true "$IPV4_SOCKS_UDP"; then
+    ipv4_udp_json=true
+fi
+
 jq -n \
     --arg access "/var/log/xray/access.log" \
     --arg error "/var/log/xray/error.log" \
@@ -122,30 +142,13 @@ jq -n \
     --argjson udp "$udp_json" \
     --arg udp_ip "$SOCKS_UDP_ADVERTISE_IP" \
     --arg pool "$IPV6_POOL" \
-    '{
-        log: {
-            access: $access,
-            error: $error,
-            loglevel: $loglevel
-        },
-        inbounds: [{
-            tag: $tag,
-            listen: $listen,
-            port: $port,
-            protocol: "socks",
-            settings: ({
-                auth: "password",
-                accounts: [{user: $username, pass: $password}],
-                udp: $udp
-            } + (if $udp_ip == "" then {} else {ip: $udp_ip} end))
-        }],
-        outbounds: [{
-            tag: "random-ipv6",
-            protocol: "freedom",
-            sendThrough: $pool,
-            settings: {domainStrategy: "UseIP"}
-        }]
-    }' > /run/xray.json
+    --argjson ipv4_enabled "$ipv4_enabled_json" \
+    --arg ipv4_listen "$IPV4_SOCKS_LISTEN" \
+    --argjson ipv4_port "$IPV4_SOCKS_PORT" \
+    --argjson ipv4_udp "$ipv4_udp_json" \
+    --arg ipv4_udp_ip "$IPV4_SOCKS_UDP_ADVERTISE_IP" \
+    -f /usr/local/libexec/xray-config.jq \
+    > /run/xray.json
 
 touch /var/log/xray/access.log /var/log/xray/error.log
 chown -R xray:xray /var/log/xray
@@ -156,7 +159,11 @@ chmod 0600 /run/xray.json
 
 gosu xray:xray /usr/local/bin/xray run -test -config /run/xray.json
 
-log "interface=$IPV6_INTERFACE pool=$IPV6_POOL listen=$SOCKS_LISTEN:$SOCKS_PORT"
+if [[ "$ipv4_enabled_json" == true ]]; then
+    log "interface=$IPV6_INTERFACE pool=$IPV6_POOL listen=$SOCKS_LISTEN:$SOCKS_PORT ipv4_listen=$IPV4_SOCKS_LISTEN:$IPV4_SOCKS_PORT"
+else
+    log "interface=$IPV6_INTERFACE pool=$IPV6_POOL listen=$SOCKS_LISTEN:$SOCKS_PORT"
+fi
 
 ndppd -c /run/ndppd.conf -p /run/ndppd.pid &
 ndppd_pid=$!
