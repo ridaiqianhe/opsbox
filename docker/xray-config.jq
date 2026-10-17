@@ -39,9 +39,9 @@ def socks_inbound($tag; $listen; $port; $username; $password; $udp; $udp_ip):
         tag: "ipv4-direct",
         protocol: "freedom",
         sendThrough: "0.0.0.0",
-        settings: {domainStrategy: "UseIPv4"},
+        settings: {domainStrategy: "ForceIPv4"},
         streamSettings: {
-            sockopt: {domainStrategy: "UseIPv4"}
+            sockopt: {domainStrategy: "ForceIPv4"}
         }
     }] else [] end)
 } + if $ipv4_enabled then {

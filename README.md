@@ -93,7 +93,7 @@ curl --proxy 'socks5h://USER:PASSWORD@SERVER_IP:PORT' https://api.ip.sb/ip
 curl --proxy 'socks5h://USER:PASSWORD@SERVER_IP:12346' https://api4.ipify.org
 ```
 
-IPv4 入口使用独立的 Xray 路由和 Freedom 出口，并将域名解析及出站源地址限制为 IPv4；原 `SOCKS_PORT` 仍保持随机 IPv6 出口。
+IPv4 入口使用独立的 Xray 路由和 Freedom 出口，并强制使用 IPv4；IPv6-only 目标会连接失败。原 `SOCKS_PORT` 仍保持随机 IPv6 出口。
 
 ## 运维
 

@@ -64,9 +64,9 @@ class XrayConfigTests(unittest.TestCase):
         ipv4_outbound = config["outbounds"][1]
         self.assertEqual("ipv4-direct", ipv4_outbound["tag"])
         self.assertEqual("0.0.0.0", ipv4_outbound["sendThrough"])
-        self.assertEqual("UseIPv4", ipv4_outbound["settings"]["domainStrategy"])
+        self.assertEqual("ForceIPv4", ipv4_outbound["settings"]["domainStrategy"])
         self.assertEqual(
-            "UseIPv4",
+            "ForceIPv4",
             ipv4_outbound["streamSettings"]["sockopt"]["domainStrategy"],
         )
         self.assertEqual(
