@@ -66,7 +66,7 @@ opsbox recovery            # 快照、恢复、迁移
 
 模块文档：[代理协议](modules/vps-proxy/README.md)、[随机 IPv6 SOCKS5](modules/random-ipv6-socks/README.md)、[Realm](modules/realm/README.md)、[SSH 快捷管理](modules/ssh/README.md)、[系统与网络模块](modules/system/README.md)。
 
-系统与网络模块需要 Linux、Bash 4+ 和 root。随机 IPv6 SOCKS5 需要 Docker Engine、Compose v2 和全局 IPv6 前缀。Realm 保留原有 Linux x86_64 / systemd 安装器及固定的 v2.6.2 版本。各模块的发行版和架构支持并不完全相同。
+系统与网络模块需要 Linux、Bash 4+ 和 root。随机 IPv6 SOCKS5 需要 Docker Engine、Compose v2 和全局 IPv6 前缀。Realm 使用独立的官方稳定版安装器，支持多种 Linux 架构和 systemd。各模块的发行版和架构支持并不完全相同。
 
 ## 现有服务迁移
 
