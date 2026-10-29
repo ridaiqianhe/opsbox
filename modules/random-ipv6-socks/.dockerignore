@@ -1,0 +1,9 @@
+.git
+.github
+.gitignore
+.env
+data
+tests
+README.md
+SECURITY.md
+THIRD_PARTY_NOTICES.md

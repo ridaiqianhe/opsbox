@@ -1,0 +1,8 @@
+services:
+  proxy:
+    image: random-ipv6-socks:${XRAY_VERSION:-26.3.27}
+    pull_policy: never
+    build:
+      context: .
+      args:
+        XRAY_VERSION: ${XRAY_VERSION:-26.3.27}
