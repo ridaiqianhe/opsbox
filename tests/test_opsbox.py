@@ -34,6 +34,7 @@ class DispatcherTests(unittest.TestCase):
             paths = ["vps-proxy/vps-proxy.sh", "random-ipv6-socks/manage.sh", "realm/realm.sh", "ssh/ssh.sh"]
             tools = "snell hysteria2 ss-2022 anytls anytls-reality tuic trojan reality shadow-tls socks-http tcp-tune".split()
             paths += [f"vps-proxy/{tool}.sh" for tool in tools]
+            paths += ["system/manage.sh"]
             for name in paths:
                 path = root / "modules" / name
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -41,7 +42,8 @@ class DispatcherTests(unittest.TestCase):
             for args, expected in [
                 (["proxy"], paths[0]), (["ipv6", "status"], paths[1]),
                 (["realm"], paths[2]), (["ssh"], paths[3]),
-                *[(["proxy", tool, "space value", "--flag"], f"vps-proxy/{tool}.sh") for tool in tools],
+                *[(["proxy", tool, "space value", "--flag"], f"vps-proxy/{tool}.sh") for tool in tools if tool != "tcp-tune"],
+                (["proxy", "tcp-tune"], "system/manage.sh"),
             ]:
                 result = bash(
                     f"source {shlex.quote(str(ROOT / 'opsbox.sh'))}; "

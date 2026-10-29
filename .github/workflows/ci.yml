@@ -19,6 +19,8 @@ jobs:
       - name: Lint maintained entry points
         run: |
           shellcheck opsbox.sh install.sh modules/ssh/ssh.sh modules/random-ipv6-socks/manage.sh
+          shellcheck -x modules/system/manage.sh
+          shellcheck --severity=error modules/system/core.sh
           shellcheck modules/random-ipv6-socks/install.sh modules/random-ipv6-socks/uninstall.sh modules/random-ipv6-socks/docker/entrypoint.sh
       - name: Test OpsBox and SSH transactions
         run: python3 -m unittest discover -s tests -v

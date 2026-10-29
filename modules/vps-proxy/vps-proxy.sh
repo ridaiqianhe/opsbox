@@ -59,7 +59,7 @@ while true; do
     echo -e "  ${GREEN}6.${NC} 🐴 Trojan"
     echo -e "  ${GREEN}7.${NC} 💎 VLESS+Reality"
     echo -e "  ${GREEN}8.${NC} 🛡️  Shadow-TLS v3 ${GRAY}(为已装 SS/Snell 加壳)${NC}"
-    echo -e "  ${GREEN}9.${NC} ⚙️  TCP 调优 ${GRAY}(BBR + BDP 缓冲)${NC}"
+    echo -e "  ${GREEN}9.${NC} ⚙️  TCP 调优 ${GRAY}(OpsBox 统一模块)${NC}"
     echo -e "  ${GREEN}10.${NC} 🧩 AnyTLS + Reality ${GRAY}(sing-box 专属)${NC}"
     echo -e "  ${GREEN}11.${NC} 🌐 SOCKS5 / HTTP ${GRAY}(Mixed 内网 · HTTPS 公网)${NC}"
     echo -e "  ${YELLOW}0.${NC} 👋 退出"
@@ -75,7 +75,12 @@ while true; do
         6) run_script "trojan.sh" ;;
         7) run_script "reality.sh" ;;
         8) run_script "shadow-tls.sh" ;;
-        9) run_script "tcp-tune.sh" ;;
+        9)
+            if [[ -f "$SCRIPT_DIR/../system/manage.sh" ]]; then
+                bash "$SCRIPT_DIR/../system/manage.sh" tcp
+            else
+                echo '请安装完整 OpsBox 后运行 opsbox tcp。'
+            fi ;;
         10) run_script "anytls-reality.sh" ;;
         11) run_script "socks-http.sh" ;;
         0) echo -e "  ${PURPLE}バイバイ~ (｡･ω･)ﾉﾞ${NC}"; exit 0 ;;

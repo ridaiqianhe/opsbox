@@ -29,6 +29,11 @@ if grep -Eq '^SOCKS_(USERNAME|PASSWORD)=change-me' .env; then
     exit 1
 fi
 
+if command -v nft >/dev/null 2>&1 && nft list table inet dmitbox_rand6 >/dev/null 2>&1; then
+    echo "检测到宿主机随机 NAT66；请先在 opsbox nat66 中关闭它，再启动独立 SOCKS5 代理。" >&2
+    exit 1
+fi
+
 chmod 0600 .env
 mkdir -p data/logs
 chmod 0700 data data/logs
