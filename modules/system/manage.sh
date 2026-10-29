@@ -13,7 +13,7 @@ source "$MODULE_DIR/../../lib/ui.sh"
 ui_init
 # These variables are read by the separately linted core.sh functions.
 # shellcheck disable=SC2034
-c_reset=$UI_RESET; c_dim=$UI_DIM; c_bold=$UI_BOLD; c_cyan=$UI_ACCENT; c_green=$UI_GOOD; c_yellow=$UI_WARN; c_white=$UI_BOLD
+c_reset=$UI_RESET c_dim=$UI_DIM c_bold=$UI_BOLD c_cyan=$UI_ACCENT c_green=$UI_GOOD c_yellow=$UI_WARN c_white=$UI_BOLD
 
 # Shared presentation; business functions remain in core.sh.
 menu_header() { ui_header "$@"; }
