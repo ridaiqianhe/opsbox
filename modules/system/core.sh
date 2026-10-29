@@ -1782,13 +1782,13 @@ tcpfit_menu() {
     menu_header "动态实测调优" "tcpfit · BDP 推导 · 限速器拐点 · 快照回滚"
     menu_section "当前状态"
     print_kv "动态调整" "$(tcpfit_status_summary)"
-    menu_section "安装与调整"
+    menu_section "安装与调优"
     menu_item "1" "安装或修复工具" "正式发布版、固定版本与 SHA-256 校验"
-    menu_item "2" "打开动态调整" "实测 BDP、带宽、限速器拐点与效果验证"
+    menu_item "2" "打开动态调优" "实测 BDP、带宽、限速器拐点与效果验证"
     menu_item "3" "查看动态状态" "当前参数、出口整形、快照与系统状态"
     menu_section "恢复"
-    menu_item "4" "仅移除出口整个" "保留动态 BDP 缓冲突 BBR/FQ"
-    menu_item "5" "完整回滚动态调整" "严格按首次快照恢复，不猜系统默认值"
+    menu_item "4" "仅移除出口整形" "保留动态 BDP 缓冲和 BBR/FQ"
+    menu_item "5" "完整回滚动态调优" "严格按首次快照恢复，不猜系统默认值"
     menu_back_item
 
     local c=""
@@ -2632,13 +2632,13 @@ ipv6_tools_menu() {
   while true; do
     menu_header "IPv6 /64 地址池" "网卡：${ifc} · /128 地址与随机出网管理"
     menu_section "地址池"
-    menu_item "1" "查看地址池状态" "/64 前缀：/128 地址与持久化配置"
-    menu_item "2" "新增长期 /128" "运行时长期有效，重启后失败"
+    menu_item "1" "查看地址池状态" "/64 前缀、/128 地址与持久化配置"
+    menu_item "2" "新增长期 /128" "运行时长期有效，重启后失效"
     menu_item "3" "新增临时 /128" "1 小时有效"
     menu_item "4" "删除一个 /128" "手动输入地址"
     menu_item "5" "关闭并清理地址池" "删除池内 /128 并取消持久化"
     menu_section "随机出网"
-    menu_item "6" "从现有地址启用" "选择： N 个 /128"
+    menu_item "6" "从现有地址启用" "选择 N 个现有 /128 地址"
     menu_item "7" "一键生成并启用" "推荐：生效 N 个 /128 后立即启用"
     menu_item "8" "查看运行状态" "配置、nft 规则与语法检查"
     menu_item "9" "运行自检" "连续请求并检查源 IPv6 是否变化"
@@ -3305,15 +3305,15 @@ cloudinit_qga_apply_dmit_default_ipchange_mode() {
 
 cloudinit_qga_menu() {
   while true; do
-    menu_header " IP 防失联" "cloud-init · QEMU Guest Agent · 网络回滚保护"
+    menu_header "换 IP 防失联" "cloud-init · QEMU Guest Agent · 网络回滚保护"
     menu_section "状态与安装"
     menu_item "1" "检测当前状态" "cloud-init、QGA 与网络接管状态"
     menu_item "2" "安装并启用组件" "安装 cloud-init 和 QEMU Guest Agent"
     menu_section "网络接管"
     menu_item "3" "开启网络接管" "解除 network: {config: disabled}"
-    menu_item "4" "清理 cloud-init 状态" " IP 前后执行，随后重启"
+    menu_item "4" "清理 cloud-init 状态" "换 IP 前后执行，随后重启"
     menu_item "5" "适配 DMIT 默认模式" "NoCloud/ConfigDrive + 自动回滚保护"
-    menu_item "6" "禁用开启 apt 更新" "避免非关键的 status:error"
+    menu_item "6" "禁用开机 apt 更新" "避免非关键的 status:error"
     menu_back_item
     local c=""
     read_tty c "请输入编号 > " ""
@@ -4577,7 +4577,7 @@ ssh_login_activity() {
 
 ssh_keys_menu() {
   while true; do
-    menu_header "SSH 登录密钥" "自动生成 · 已有密钥导入 · 权限修复 · 防止误删最后密码"
+    menu_header "SSH 登录密钥" "自动生成 · 已有密钥导入 · 权限修复 · 防止误删最后密钥"
     menu_section "密钥管理"
     menu_item "1" "查看登录密钥" "列出指纹，不显示完整密钥内容"
     menu_item "2" "自动生成登录密钥" "默认方式；一次性显示私钥并自动安装公钥"
@@ -5205,7 +5205,7 @@ tests_menu() {
     menu_item "4" "TcpQuality" "全国三网 TCP 质量检查"
     menu_item "5" "NodeQuality" "节点综合质量测试"
     menu_item "6" "Telegram 延迟" "TG 数据中心延迟测试"
-    menu_item "7" "流媒体解析" "检测常见流媒体可用性"
+    menu_item "7" "流媒体解锁" "检测常见流媒体可用性"
     menu_back_item
     local c=""
     read_tty c "请输入编号 > " ""
@@ -5231,7 +5231,7 @@ dd_reinstall() {
   fi
 
   local c="" flag="" ver="" port="" mode="" pwd=""
-  menu_header "DD 重装系统" "InstallNET.sh · 此操作将清空系统："
+  menu_header "DD 重装系统" "InstallNET.sh · 此操作将清空系统盘"
   warn "风险极高：建议先准备 VNC、救援模式或面板控制台"
   warn "开始后 SSH 可能中断"
   menu_section "Debian / Ubuntu"
@@ -5354,7 +5354,7 @@ system_overview() {
   print_kv "系统负载" "$load_text"
   print_kv "时区 / 时间同步" "${timezone} / ${time_sync}"
 
-  menu_section "内存： Swap"
+  menu_section "内存与 Swap"
   if have_cmd free; then
     free -h
   else
@@ -5582,7 +5582,7 @@ process_inspect_and_stop() {
   [[ "$pid" -ne "$$" && "$pid" -ne "$PPID" ]] || { warn "不能操作当前工具箱进程"; return 1; }
   kill -0 "$pid" >/dev/null 2>&1 || { warn "PID ${pid} 不存在或无权访问"; return 1; }
 
-  menu_header "进程 ${pid}" "查看详情；可选择发送安全终止信息 SIGTERM"
+  menu_header "进程 ${pid}" "查看详情；可选择发送终止信号 SIGTERM"
   ps -p "$pid" -o pid,ppid,user,group,stat,%cpu,%mem,rss,vsz,lstart,etime,comm 2>/dev/null || true
   cmdline="$(tr '\0' ' ' < "/proc/${pid}/cmdline" 2>/dev/null || true)"
   print_kv "命令：" "${cmdline:-N/A}"
@@ -5667,7 +5667,7 @@ system_status_menu() {
     menu_section "进程"
     menu_item "3" "CPU 占用排行" "显示前 15 个进程"
     menu_item "4" "内存占用排行" "显示前 15 个进程"
-    menu_item "5" "查看或停止进程" "显示 PID 详情，可发现 SIGTERM"
+    menu_item "5" "查看或停止进程" "显示 PID 详情，可发送 SIGTERM"
     menu_section "端口"
     menu_item "6" "查看全部监听端口" "TCP / UDP、PID 与程序"
     menu_item "7" "按端口诊断" "查询监听程序和相关连接"
@@ -5950,7 +5950,7 @@ cleanup_preview() {
   menu_header "安全清理预览" "只统计可安全清理的缓存与日志，不删除文件"
   menu_section "根分区"
   df -h / 2>/dev/null || true
-  menu_section "软件包缓解"
+  menu_section "软件包缓存"
   [[ -d /var/cache/apt/archives ]] && print_kv "APT 缓存" "$(du -sh /var/cache/apt/archives 2>/dev/null | awk '{print $1}' || echo N/A)"
   [[ -d /var/cache/dnf ]] && print_kv "DNF 缓存" "$(du -sh /var/cache/dnf 2>/dev/null | awk '{print $1}' || echo N/A)"
   [[ -d /var/cache/yum ]] && print_kv "YUM 缓存" "$(du -sh /var/cache/yum 2>/dev/null | awk '{print $1}' || echo N/A)"
@@ -6703,7 +6703,7 @@ fail2ban_menu() {
   while true; do
     menu_header "Fail2Ban SSH 防爆破" "自动识别 SSH 端口 · 白名单 · 封禁状态"
     menu_section "管理"
-    menu_item "1" "查看状态与日志" "sshd jail、封 IP 和最近日志"
+    menu_item "1" "查看状态与日志" "sshd jail、封禁 IP 和最近日志"
     menu_item "2" "安装或修复配置" "5 次失败，封禁 1 小时"
     menu_item "3" "添加白名单" "支持单个 IP 或 CIDR"
     menu_item "4" "解封 IP" "从 sshd jail 中解除封禁"
@@ -11436,7 +11436,7 @@ common_firewall_container_warning() {
 
 common_firewall_status() {
   local backend="" rc=0 zone="" listeners="" rule_count="" installed="" netfilter_risk="none"
-  menu_header "防火墙状态" "管理的 · 入站规则 · 非回环监听 · 冲突诊断"
+  menu_header "防火墙状态" "当前管理器 · 入站规则 · 非回环监听 · 冲突诊断"
   backend="$(common_firewall_active_backend)" || rc=$?
   menu_section "管理状态"
   case "$rc:$backend" in
@@ -11749,7 +11749,7 @@ network_menu() {
 
 ipv6_menu() {
   while true; do
-    menu_header "IPv6 管理" "基础开启 · 故障修复 · /64 地址池与随机出网"
+    menu_header "IPv6 管理" "基础开关 · 故障修复 · /64 地址池与随机出网"
     menu_section "基础管理"
     menu_item "1" "查看 IPv6 状态" "地址、路由、/64 前缀与 /128 列表"
     menu_item "2" "开启 IPv6" "开启 sysctl 并重新获取地址和路由"
