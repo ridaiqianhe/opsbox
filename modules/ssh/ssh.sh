@@ -1,79 +1,131 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -uo pipefail
 
-red(){
-    echo -e "\033[31m\033[01m$1\033[0m"
+SSHD_CONFIG=${SSHD_CONFIG:-/etc/ssh/sshd_config}
+SSHD_BIN=${SSHD_BIN:-/usr/sbin/sshd}
+
+reload_ssh() {
+    if command -v systemctl >/dev/null 2>&1; then
+        if systemctl is-active --quiet ssh; then
+            systemctl reload ssh
+        elif systemctl is-active --quiet sshd; then
+            systemctl reload sshd
+        else
+            echo '没有找到运行中的 ssh/sshd 服务。' >&2
+            return 1
+        fi
+    elif command -v rc-service >/dev/null 2>&1; then
+        rc-service sshd reload
+    else
+        echo '未识别服务管理器，配置未应用。' >&2
+        return 1
+    fi
 }
 
-green(){
-    echo -e "\033[32m\033[01m$1\033[0m"
+# Preserve Match sections and Include directives.
+render_config() {
+    local key="$1" value="$2"
+    printf '%s %s\n' "$key" "$value"
+    awk -v key="$key" '
+        tolower($1) == "match" { in_match = 1 }
+        !in_match && tolower($1) == tolower(key) { next }
+        { print }
+    ' "$SSHD_CONFIG"
 }
 
-yellow(){
-    echo -e "\033[33m\033[01m$1\033[0m"
+apply_setting() (
+    local key="$1" value="$2" candidate backup effective
+    [[ -f "$SSHD_CONFIG" && ! -L "$SSHD_CONFIG" && -x "$SSHD_BIN" ]] || {
+        echo '需要已安装的 OpenSSH 服务和常规 sshd_config 文件。' >&2; return 1;
+    }
+    "$SSHD_BIN" -t -f "$SSHD_CONFIG" || return 1
+    candidate=$(mktemp "${SSHD_CONFIG}.opsbox-candidate.XXXXXX") || return 1
+    backup=$(mktemp "${SSHD_CONFIG}.opsbox-backup.XXXXXX") || { rm -f -- "$candidate"; return 1; }
+    trap 'rm -f -- "$candidate"' EXIT
+    cp -p -- "$SSHD_CONFIG" "$backup" || return 1
+    render_config "$key" "$value" > "$candidate" || return 1
+    "$SSHD_BIN" -t -f "$candidate" || return 1
+    effective=$("$SSHD_BIN" -T -f "$candidate") || return 1
+    if ! awk -v key="$key" -v value="$value" '
+        tolower($1) == tolower(key) { count++; if ($2 != value) invalid = 1 }
+        END { exit !(count == 1 && !invalid) }
+    ' <<< "$effective"; then
+        echo '实际配置与目标不一致（可能被 Include 或多端口配置影响），未修改。' >&2
+        return 1
+    fi
+    if ! cat "$candidate" > "$SSHD_CONFIG"; then
+        cp -p -- "$backup" "$SSHD_CONFIG"
+        return 1
+    fi
+    if ! "$SSHD_BIN" -t -f "$SSHD_CONFIG" || ! reload_ssh; then
+        cp -p -- "$backup" "$SSHD_CONFIG"
+        reload_ssh || true
+        echo "应用失败，已恢复配置。备份：$backup" >&2
+        return 1
+    fi
+    printf '已应用 %s。备份：%s\n' "$key" "$backup"
+)
+
+change_password() {
+    local account
+    read -r -p '要修改密码的本地用户名 [root]: ' account || return 1
+    account=${account:-root}
+    [[ "$account" =~ ^[a-zA-Z_][a-zA-Z0-9_.-]*\$?$ ]] || { echo '用户名格式无效。' >&2; return 1; }
+    id "$account" >/dev/null 2>&1 || { echo '用户不存在。' >&2; return 1; }
+    passwd "$account"
 }
 
-REGEX=("debian" "ubuntu" "centos|red hat|kernel|oracle linux|alma|rocky" "'amazon linux'" "alpine")
-RELEASE=("Debian" "Ubuntu" "CentOS" "CentOS" "Alpine")
-PACKAGE_UPDATE=("apt -y update" "apt -y update" "yum -y update" "yum -y update" "apk update -f")
-PACKAGE_INSTALL=("apt -y install" "apt -y install" "yum -y install" "yum -y install" "apk add -f")
-CMD=("$(grep -i pretty_name /etc/os-release 2>/dev/null | cut -d \" -f2)" "$(hostnamectl 2>/dev/null | grep -i system | cut -d : -f2)" "$(lsb_release -sd 2>/dev/null)" "$(grep -i description /etc/lsb-release 2>/dev/null | cut -d \" -f2)" "$(grep . /etc/redhat-release 2>/dev/null)" "$(grep . /etc/issue 2>/dev/null | cut -d \\ -f1 | sed '/^[ ]*$/d')")
+change_port() {
+    local port answer
+    read -r -p '新的 SSH 端口 [1-65535，空白取消]: ' port || return 1
+    [[ -n "$port" ]] || return 0
+    [[ "$port" =~ ^[0-9]{1,5}$ ]] && (( 10#$port >= 1 && 10#$port <= 65535 )) || {
+        echo '端口无效。' >&2; return 1;
+    }
+    port=$((10#$port))
+    echo '请先在云安全组和防火墙放行新端口，保留当前连接直到新连接验证成功。'
+    if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet ssh.socket; then
+        echo '检测到 ssh.socket，请通过系统工具修改 socket 监听端口。' >&2; return 1
+    fi
+    read -r -p "将 SSH 端口改为 $port？[yes/N]: " answer || return 1
+    [[ "$answer" == yes ]] || return 0
+    apply_setting Port "$port"
+}
 
-for i in "${CMD[@]}"; do
-	SYS="$i" && [[ -n $SYS ]] && break
-done
+enable_password_login() {
+    local answer
+    echo '此操作仅启用全局 PasswordAuthentication，保留现有用户和 root 登录限制。'
+    read -r -p '确认启用密码登录？[yes/N]: ' answer || return 1
+    [[ "$answer" == yes ]] || return 0
+    apply_setting PasswordAuthentication yes
+}
 
-for ((int=0; int<${#REGEX[@]}; int++)); do
-	[[ $(echo "$SYS" | tr '[:upper:]' '[:lower:]') =~ ${REGEX[int]} ]] && SYSTEM="${RELEASE[int]}" && [[ -n $SYSTEM ]] && break
-done
+enable_root_login() {
+    local answer
+    echo '此操作允许 root 登录。密码登录是否可用仍由 PasswordAuthentication 和 Match 规则决定。'
+    read -r -p '确认允许 root 登录？[yes/N]: ' answer || return 1
+    [[ "$answer" == yes ]] || return 0
+    apply_setting PermitRootLogin yes
+}
 
-[[ -z $SYSTEM ]] && red "脚本暂时不支持VPS的当前系统，请使用主流操作系统" && exit 1
-[[ ! -f /etc/ssh/sshd_config ]] && sudo ${PACKAGE_UPDATE[int]} && sudo ${PACKAGE_INSTALL[int]} openssh-server
-[[ -z $(type -P curl) ]] && sudo ${PACKAGE_UPDATE[int]} && sudo ${PACKAGE_INSTALL[int]} curl
+show_settings() {
+    "$SSHD_BIN" -T -f "$SSHD_CONFIG" | awk '$1 ~ /^(port|permitrootlogin|passwordauthentication|kbdinteractiveauthentication|pubkeyauthentication)$/ { print }'
+}
 
-WgcfIPv4Status=$(curl -s4m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
-WgcfIPv6Status=$(curl -s6m8 https://www.cloudflare.com/cdn-cgi/trace -k | grep warp | cut -d= -f2)
-if [[ $WgcfIPv4Status =~ "on"|"plus" ]] || [[ $WgcfIPv6Status =~ "on"|"plus" ]]; then
-    wg-quick down wgcf >/dev/null 2>&1
-    systemctl stop warp-go >/dev/null 2>&1
-    v6=$(curl -s6m8 api64.ipify.org -k)
-    v4=$(curl -s4m8 api64.ipify.org -k)
-    wg-quick up wgcf >/dev/null 2>&1
-    systemctl start warp-go >/dev/null 2>&1
-else
-    v6=$(curl -s6m8 api64.ipify.org -k)
-    v4=$(curl -s4m8 api64.ipify.org -k)
-fi
+main() {
+    (( EUID == 0 )) || { echo '请使用 root 运行 SSH 管理。' >&2; return 1; }
+    local choice result
+    while true; do
+        printf '\nSSH 管理\n1. 修改本地用户密码\n2. 修改 SSH 端口\n3. 查看全局 SSH 设置\n4. 启用密码登录\n5. 允许 root 登录\n0. 返回\n'
+        read -r -p '请选择 [0-5]: ' choice || return 0
+        case "$choice" in
+            1) change_password ;; 2) change_port ;; 3) show_settings ;;
+            4) enable_password_login ;; 5) enable_root_login ;;
+            0) return 0 ;; *) echo '请输入有效选项。'; continue ;;
+        esac
+        result=$?
+        (( result == 0 )) || echo '操作未完成。' >&2
+    done
+}
 
-sudo lsattr /etc/passwd /etc/shadow >/dev/null 2>&1
-sudo chattr -i /etc/passwd /etc/shadow >/dev/null 2>&1
-sudo chattr -a /etc/passwd /etc/shadow >/dev/null 2>&1
-sudo lsattr /etc/passwd /etc/shadow >/dev/null 2>&1
-
-read -p "输入设置的SSH端口（默认22）：" sshport
-[[ -z $sshport ]] && red "端口未设置，将使用默认22端口" && sshport=22
-read -p "输入设置的root密码：" password
-[[ -z $password ]] && red "密码未设置，将使用随机生成密码" && password=$(cat /proc/sys/kernel/random/uuid)
-echo root:$password | sudo chpasswd root
-
-sudo sed -i 's/^Include \/etc\/ssh\/sshd_config.d\/\*\.conf/#&/' /etc/ssh/sshd_config
-sudo sed -i "s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config;
-sudo sed -i "s/^#\?PermitRootLogin.*/PermitRootLogin yes/g" /etc/ssh/sshd_config;
-sudo sed -i "s/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g" /etc/ssh/sshd_config;
-sudo sed -i 's/^#\?KbdInteractiveAuthentication.*/KbdInteractiveAuthentication yes/g' /etc/ssh/sshd_config
-
-sudo service ssh restart >/dev/null 2>&1 # 某些VPS系统的ssh服务名称为ssh，以防无法重启服务导致无法立刻使用密码登录
-sudo service sshd restart >/dev/null 2>&1
-
-yellow "VPS root登录信息设置完成！"
-if [[ -n $v4 && -z $v6 ]]; then
-    green "VPS登录IP地址及端口为：$v4:$sshport"
-fi
-if [[ -z $v4 && -n $v6 ]]; then
-    green "VPS登录IP地址及端口为：$v6:$sshport"
-fi
-if [[ -n $v4 && -n $v6 ]]; then
-    green "VPS登录IP地址及端口为：$v4:$sshport 或 $v6:$sshport"
-fi
-green "用户名：root"
-green "密码：$password"
-yellow "请妥善保存好登录信息！然后重启VPS确保设置已保存！"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then main "$@"; fi

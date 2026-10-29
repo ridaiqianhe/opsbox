@@ -2,13 +2,13 @@
 
 # ===================================================================
 # vps-proxy — 常用代理协议一键脚本合集入口
-# 仓库: https://github.com/ridaiqianhe/vps-proxy
+# 仓库: https://github.com/ridaiqianhe/opsbox
 #
 # 用法:
-#   bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main/vps-proxy.sh)
+#   bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy/vps-proxy.sh)
 # ===================================================================
 
-REPO_RAW="https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main"
+REPO_RAW="https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy"
 
 # --- 配色(二次元紫彩) ---
 PURPLE='\e[38;5;135m'; CYAN='\e[96m'; GREEN='\e[92m'; YELLOW='\e[93m'; BLUE='\e[94m'; GRAY='\e[90m'; NC='\e[0m'
@@ -64,7 +64,7 @@ while true; do
     echo -e "  ${GREEN}11.${NC} 🌐 SOCKS5 / HTTP ${GRAY}(Mixed 内网 · HTTPS 公网)${NC}"
     echo -e "  ${YELLOW}0.${NC} 👋 退出"
     echo ""
-    read -p "$(echo -e "  ${CYAN}请输入选项 [0-11]: ${NC}")" choice
+    read -r -p "$(echo -e "  ${CYAN}请输入选项 [0-11]: ${NC}")" choice || exit 0
 
     case $choice in
         1) run_script "snell.sh" ;;
@@ -87,5 +87,5 @@ while true; do
     esac
 
     echo ""
-    read -p "$(echo -e "  ${GRAY}按回车返回主菜单...${NC}")" _
+    read -r -p "$(echo -e "  ${GRAY}按回车返回主菜单...${NC}")" _ || exit 0
 done

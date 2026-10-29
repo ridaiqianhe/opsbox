@@ -1,7 +1,7 @@
 # Random IPv6 SOCKS5
 
-[![CI](https://github.com/ridaiqianhe/random-ipv6-socks/actions/workflows/ci.yml/badge.svg)](https://github.com/ridaiqianhe/random-ipv6-socks/actions/workflows/ci.yml)
-[![Publish GHCR](https://github.com/ridaiqianhe/random-ipv6-socks/actions/workflows/publish.yml/badge.svg)](https://github.com/ridaiqianhe/random-ipv6-socks/actions/workflows/publish.yml)
+[![CI](https://github.com/ridaiqianhe/opsbox/actions/workflows/ci.yml/badge.svg)](https://github.com/ridaiqianhe/opsbox/actions/workflows/ci.yml)
+[![Publish GHCR](https://github.com/ridaiqianhe/opsbox/actions/workflows/publish.yml/badge.svg)](https://github.com/ridaiqianhe/opsbox/actions/workflows/publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 使用 Xray 提供带账号密码认证的 SOCKS5，并为每个新连接从 IPv6 CIDR 中随机选择出口地址。还可启用独立端口，强制使用服务器 IPv4 出口。容器启动时自动恢复 `ip_nonlocal_bind`、本地路由和 NDP 代理。
@@ -30,8 +30,8 @@ Authenticated Xray SOCKS5 with a random IPv6 source address per connection and a
 ## 部署
 
 ```bash
-git clone https://github.com/ridaiqianhe/random-ipv6-socks.git
-cd random-ipv6-socks
+git clone https://github.com/ridaiqianhe/opsbox.git
+cd opsbox/modules/random-ipv6-socks
 cp .env.example .env
 nano .env
 sudo ./install.sh

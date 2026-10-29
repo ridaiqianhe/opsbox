@@ -2,7 +2,7 @@ name: random-ipv6-socks
 
 services:
   proxy:
-    image: ghcr.io/ridaiqianhe/random-ipv6-socks:${IMAGE_TAG:-latest}
+    image: ${SOCKS_IMAGE:-ghcr.io/ridaiqianhe/random-ipv6-socks}:${IMAGE_TAG:-latest}
     pull_policy: always
     container_name: random-ipv6-socks
     network_mode: host

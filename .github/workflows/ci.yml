@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install test tools
+        run: sudo apt-get update && sudo apt-get install -y jq shellcheck
+      - name: Check shell syntax
+        run: find . -name '*.sh' -not -path './.git/*' -print0 | xargs -0 -n1 bash -n
+      - name: Lint maintained entry points
+        run: |
+          shellcheck opsbox.sh install.sh modules/ssh/ssh.sh modules/random-ipv6-socks/manage.sh
+          shellcheck modules/random-ipv6-socks/install.sh modules/random-ipv6-socks/uninstall.sh modules/random-ipv6-socks/docker/entrypoint.sh
+      - name: Test OpsBox and SSH transactions
+        run: python3 -m unittest discover -s tests -v
+      - name: Test random IPv6 module
+        run: python3 -m unittest discover -s modules/random-ipv6-socks/tests -v
+      - name: Validate Compose configuration
+        working-directory: modules/random-ipv6-socks
+        run: |
+          docker compose --env-file .env.example config --quiet
+          docker compose --env-file .env.example -f compose.yaml -f compose.build.yaml config --quiet
+      - uses: docker/setup-buildx-action@v4
+      - name: Build random IPv6 image
+        uses: docker/build-push-action@v7
+        with:
+          context: modules/random-ipv6-socks
+          push: false
+          tags: opsbox-random-ipv6-socks:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

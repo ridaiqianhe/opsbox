@@ -29,7 +29,7 @@ ARG XRAY_VERSION=26.3.27
 
 LABEL org.opencontainers.image.title="Random IPv6 SOCKS5" \
       org.opencontainers.image.description="Authenticated Xray SOCKS5 with random IPv6 and optional IPv4 egress" \
-      org.opencontainers.image.source="https://github.com/ridaiqianhe/random-ipv6-socks" \
+      org.opencontainers.image.source="https://github.com/ridaiqianhe/opsbox" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.version="$XRAY_VERSION"
 

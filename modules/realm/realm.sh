@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [[ $(uname -s) != Linux || $EUID -ne 0 ]]; then
+    echo "Realm 管理需要 Linux root 权限。" >&2
+    exit 1
+fi
+
 # 检查realm是否已安装
 if [ -f "/etc/realm/realm" ]; then
     echo "检测到realm已安装。"
@@ -108,12 +113,14 @@ use_udp = true
 
 # 卸载realm
 uninstall_realm() {
+    local answer
+    read -r -p "删除 Realm 服务、配置和转发规则？[yes/N]: " answer || return 1
+    [[ $answer == yes ]] || return 0
     systemctl stop realm
     systemctl disable realm
     rm -rf /etc/systemd/system/realm.service
     systemctl daemon-reload
     rm -rf /etc/realm
-    rm -rf "$(pwd)"/realm.sh
     sed -i '/realm/d' /etc/crontab
     echo "realm已被卸载。"
     # 更新realm状态变量
@@ -298,7 +305,7 @@ cron_restart() {
 # 主循环
 while true; do
     show_menu
-    read -p "请选择一个选项: " choice
+    read -r -p "请选择一个选项: " choice || exit 0
     # 去掉输入中的空格
     choice=$(echo $choice | tr -d '[:space:]')
 
@@ -341,5 +348,5 @@ while true; do
             echo "无效选项: $choice"
             ;;
     esac
-    read -p "按任意键继续..." key
+    read -r -p "按回车继续..." key || exit 0
 done

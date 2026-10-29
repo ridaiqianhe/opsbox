@@ -1,4 +1,4 @@
-# vps-proxy
+# OpsBox 代理协议模块
 
 常用代理协议一键安装/管理脚本合集,支持 Debian/Ubuntu(Snell 同时支持 RHEL 系)。
 
@@ -21,44 +21,44 @@
 ### 统一入口(推荐)
 
 ```bash
-bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main/vps-proxy.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy/vps-proxy.sh)
 ```
 
 ### 单独运行某个脚本
 
 ```bash
 # Snell
-bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main/snell.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy/snell.sh)
 
 # Hysteria2
-bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main/hysteria2.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy/hysteria2.sh)
 
 # Shadowsocks 2022(支持带参数无交互: -p 端口 -w 密码)
-bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main/ss-2022.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy/ss-2022.sh)
 
 # AnyTLS
-bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main/anytls.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy/anytls.sh)
 
 # AnyTLS + Reality (sing-box 专属; 客户端也必须使用 sing-box 1.12.12+)
-bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main/anytls-reality.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy/anytls-reality.sh)
 
 # TUIC v5（Itsusinn/tuic）
-bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main/tuic.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy/tuic.sh)
 
 # Trojan(默认 SNI icloud.com,自签证书)
-bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main/trojan.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy/trojan.sh)
 
 # VLESS+Reality
-bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main/reality.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy/reality.sh)
 
 # TCP 调优(BBR + BDP 缓冲)
-bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main/tcp-tune.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy/tcp-tune.sh)
 
 # Shadow-TLS v3(为已装的 SS 2022 / Snell 加壳)
-bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main/shadow-tls.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy/shadow-tls.sh)
 
 # SOCKS5 / HTTP / HTTPS Proxy
-bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/vps-proxy/refs/heads/main/socks-http.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy/socks-http.sh)
 ```
 
 所有脚本都需要 root 权限。
