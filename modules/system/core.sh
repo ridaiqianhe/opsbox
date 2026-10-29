@@ -7516,32 +7516,32 @@ secure_site_nav_cards() {
   local data="$1" badge="" name="" description="" url="" color=""
   while IFS='|' read -r badge name description url color; do
     [[ -n "$badge" && -n "$name" && "$url" == https://* && "$color" =~ ^c[1-8]$ ]] || continue
-    printf '          <a class="site" href="%s" target="_blank" rel="noopener noreferrer"><span class="site-badge %s">%s</span><span class="site-copy"><strong>%s</strong><small>%s</small></span></a>\n' \
+    printf '          <a class="site" href="%s" target="_blank" rel="noopener noreferrer"><span class="site-badge %s">%s</span><span class="site-copy"><strong>%s</strong><small>%s</small></span><span class="site-arrow" aria-hidden="true">↗</span></a>\n' \
       "$url" "$color" "$badge" "$name" "$description"
   done <<< "$data"
 }
 
 secure_site_generate_homepage() {
-  local domain="$1" template="${2:-4}"
-  local accent="#2563eb" accent_dark="#1d4ed8" accent_soft="#eff6ff"
-  local gradient_a="#dbeafe" gradient_b="#f8fafc" theme_label="经典蓝"
+  local domain="$1" template="${2:-5}"
+  local accent="#24272c" accent_dark="#101216" accent_soft="#f2f3f5"
+  local theme_label="简约白"
   local favorites_html="" news_html="" media_html="" study_html=""
   local life_html="" cloud_html="" tools_html="" build_id="" year=""
 
-  [[ "$template" =~ ^[1-4]$ ]] || template="4"
+  [[ "$template" =~ ^[1-5]$ ]] || template="5"
   [[ "$template" != "4" ]] || template="$(random_uint_between 1 3)"
   case "$template" in
     1)
       accent="#2563eb"; accent_dark="#1d4ed8"; accent_soft="#eff6ff"
-      gradient_a="#dbeafe"; gradient_b="#f8fafc"; theme_label="经典蓝"
+      theme_label="经典蓝"
       ;;
     2)
       accent="#0f8f68"; accent_dark="#087554"; accent_soft="#ecfdf5"
-      gradient_a="#d1fae5"; gradient_b="#f8fafc"; theme_label="清新绿"
+      theme_label="清新绿"
       ;;
     3)
       accent="#ea580c"; accent_dark="#c2410c"; accent_soft="#fff7ed"
-      gradient_a="#ffedd5"; gradient_b="#fffaf5"; theme_label="暖橙色"
+      theme_label="暖橙色"
       ;;
   esac
 
@@ -7597,69 +7597,71 @@ VT|VirusTotal|文件与网址安全检查|https://www.virustotal.com/|c8")"
 <head>
   <meta charset=\"utf-8\">
   <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
-  <meta name=\"description\" content=\"实用、清爽的常用网址导航，分类整理搜索、资讯、影音、学习与生活服务。\">
-  <meta name=\"theme-color\" content=\"${accent}\">
+  <meta name=\"description\" content=\"一个简洁的常用网址导航。搜索信息，发现工具，让每天的访问更轻松。\">
+  <meta name=\"theme-color\" content=\"#ffffff\">
   <link rel=\"icon\" href=\"/favicon.svg\" type=\"image/svg+xml\">
   <title>网址导航 · ${domain}</title>
   <style>
-    :root{color-scheme:light;--accent:${accent};--accent-dark:${accent_dark};--soft:${accent_soft};--ink:#172033;--muted:#687386;--line:#e5eaf1;--paper:#f5f7fa;--card:#fff;--shadow:0 12px 34px rgba(30,41,59,.07)}
-    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:linear-gradient(135deg,${gradient_a} 0,${gradient_b} 25rem,var(--paper) 48rem);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;font-size:15px}
-    a{color:inherit}.wrap{width:min(1180px,calc(100% - 36px));margin:auto}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-    .topbar{height:42px;border-bottom:1px solid rgba(148,163,184,.22);color:var(--muted);font-size:12px}.topbar .wrap{height:100%;display:flex;align-items:center;justify-content:space-between}.topbar-links{display:flex;gap:18px}.topbar a{text-decoration:none}.topbar a:hover{color:var(--accent)}
-    .header{padding:24px 0 20px}.header-row{display:flex;align-items:center;justify-content:space-between;gap:24px}.brand{display:flex;align-items:center;gap:12px;text-decoration:none;font-size:21px;font-weight:800;letter-spacing:-.03em}.brand-mark{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;color:#fff;background:linear-gradient(145deg,var(--accent),var(--accent-dark));box-shadow:0 8px 22px color-mix(in srgb,var(--accent) 25%,transparent)}.brand small{display:block;margin-top:2px;color:var(--muted);font-size:11px;font-weight:500;letter-spacing:.03em}
-    .header-note{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.status-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px #dcfce7}
-    .hero{padding:34px 0 30px;text-align:center}.hero h1{margin:0;font-size:clamp(30px,5vw,48px);letter-spacing:-.045em}.hero p{margin:12px auto 24px;color:var(--muted);font-size:15px}
-    .search{display:flex;width:min(720px,100%);margin:auto;padding:7px;background:#fff;border:1px solid #dce3ec;border-radius:16px;box-shadow:0 18px 50px rgba(30,41,59,.11)}.engine{display:flex;align-items:center;padding:0 13px;border-right:1px solid var(--line);color:var(--accent);font-size:13px;font-weight:750}.search input{min-width:0;flex:1;border:0;outline:0;padding:13px 15px;background:transparent;color:var(--ink);font:inherit}.search input::placeholder{color:#9aa4b2}.search button{border:0;border-radius:11px;padding:0 24px;background:var(--accent);color:#fff;font:inherit;font-weight:750;cursor:pointer}.search button:hover{background:var(--accent-dark)}
-    .search-shortcuts{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-top:15px;color:var(--muted);font-size:12px}.search-shortcuts a{text-decoration:none}.search-shortcuts a:hover{color:var(--accent)}
-    .quick-strip{display:flex;align-items:center;gap:9px;margin:0 0 24px;padding:13px 16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.78);box-shadow:0 6px 24px rgba(30,41,59,.04);overflow-x:auto;white-space:nowrap}.quick-strip strong{margin-right:4px;color:var(--accent);font-size:12px}.quick-strip a{padding:7px 11px;border-radius:8px;text-decoration:none;color:#4b5563;font-size:13px}.quick-strip a:hover{background:var(--soft);color:var(--accent)}
-    .layout{display:grid;grid-template-columns:176px minmax(0,1fr);gap:22px;align-items:start}.sidebar{position:sticky;top:16px;padding:14px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.9);box-shadow:var(--shadow)}.sidebar-title{padding:7px 10px 12px;color:var(--muted);font-size:11px;font-weight:750;text-transform:uppercase;letter-spacing:.12em}.sidebar a{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;text-decoration:none;color:#4b5563;font-size:13px}.sidebar a:hover{background:var(--soft);color:var(--accent)}.side-icon{display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:#f1f5f9;font-size:12px}
-    .directory{min-width:0}.category{scroll-margin-top:18px;margin:0 0 22px;padding:23px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.94);box-shadow:var(--shadow)}.category-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:18px}.category h2{margin:0;font-size:18px;letter-spacing:-.02em}.category-head span{color:var(--muted);font-size:11px}.site-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
-    .site{display:flex;align-items:center;min-width:0;gap:11px;padding:12px;border:1px solid #edf0f4;border-radius:13px;background:#fff;text-decoration:none;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}.site:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--accent) 35%,#e5e7eb);box-shadow:0 9px 22px rgba(30,41,59,.08)}.site-badge{flex:0 0 auto;display:grid;place-items:center;width:38px;height:38px;border-radius:11px;color:#fff;font-weight:800;font-size:13px}.site-copy{min-width:0}.site strong,.site small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.site strong{font-size:13px}.site small{margin-top:4px;color:var(--muted);font-size:10px}
-    .c1{background:#2563eb}.c2{background:#0ea5e9}.c3{background:#16a34a}.c4{background:#7c3aed}.c5{background:#ea580c}.c6{background:#dc2626}.c7{background:#475569}.c8{background:#0891b2}
-    .source-note{display:flex;justify-content:space-between;gap:20px;margin:4px 0 34px;padding:18px 20px;border:1px dashed #cbd5e1;border-radius:14px;color:var(--muted);font-size:12px;line-height:1.7}.source-note a{color:var(--accent);text-decoration:none}
-    footer{display:flex;justify-content:space-between;gap:20px;padding:24px 0 34px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}footer a{text-decoration:none}footer a:hover{color:var(--accent)}:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 35%,transparent);outline-offset:3px}
-    @media(max-width:820px){.wrap{width:min(100% - 24px,1180px)}.topbar{display:none}.header{padding:16px 0}.header-note{display:none}.hero{padding:25px 0}.engine{display:none}.search{padding:5px;border-radius:14px}.search input{padding:12px}.search button{padding:0 18px}.quick-strip{margin-bottom:14px}.layout{display:block}.sidebar{position:sticky;z-index:2;top:0;display:flex;gap:4px;margin-bottom:14px;padding:8px;overflow-x:auto;border-radius:13px}.sidebar-title{display:none}.sidebar a{flex:0 0 auto;padding:8px 10px}.side-icon{display:none}.category{padding:17px;margin-bottom:14px}.site-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.source-note,footer{flex-direction:column}}
-    @media(max-width:460px){.site-grid{grid-template-columns:1fr}.category-head span{display:none}.brand{font-size:18px}}
+    :root{color-scheme:light;--accent:${accent};--accent-dark:${accent_dark};--soft:${accent_soft};--ink:#202124;--muted:#73777d;--line:#e9eaec;--paper:#fafafa;--card:#fff}
+    *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:30px}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,\"Segoe UI\",\"PingFang SC\",\"Microsoft YaHei\",sans-serif;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+    a{color:inherit;text-decoration:none}button,input{font:inherit}.wrap{width:min(1160px,calc(100% - 64px));margin:auto}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    .header{background:#fff;border-bottom:1px solid var(--line)}.header-row{height:84px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:13px;font-size:18px;font-weight:650;letter-spacing:-.04em}.brand-mark{width:34px;height:34px;display:grid;place-items:center;color:var(--accent)}.brand-mark svg{width:28px;height:28px}.brand small{display:block;color:#92969c;font-size:10px;font-weight:500;letter-spacing:.14em;line-height:1.4}.header-links{display:flex;gap:28px;color:var(--muted);font-size:12px}.header-links a:hover{color:var(--ink)}
+    .hero{padding:66px 0 54px;text-align:center}.eyebrow{margin:0 0 13px;font-size:10px;font-weight:650;letter-spacing:.24em;color:#92969b}.hero h1{margin:0;font-size:clamp(30px,4vw,42px);line-height:1.35;font-weight:600;letter-spacing:-.05em}.hero p{margin:15px 0 28px;color:var(--muted);font-size:14px}
+    .search{display:flex;align-items:center;gap:10px;width:min(650px,100%);margin:auto;padding:8px 8px 8px 20px;border:1px solid #e2e4e7;border-radius:14px;background:#fff;box-shadow:0 4px 18px #20212404}.search:focus-within{border-color:#b6bbc2;box-shadow:0 0 0 3px #20212405}.search-icon{width:18px;height:18px;flex:none;color:#9a9fa6}.search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font-size:13px;padding:10px 0}.search input::placeholder{color:#a0a4aa}.search button{border:0;border-radius:9px;flex:none;background:var(--accent);color:#fff;padding:11px 22px;font-size:12px;cursor:pointer}.search button:hover{background:var(--accent-dark)}.search-shortcuts{display:flex;justify-content:center;gap:18px;align-items:center;margin-top:16px;color:#8e939a;font-size:11px}.search-shortcuts a:hover{color:var(--ink)}.search-shortcuts .dot{color:#c5c8cc}
+    .layout{display:grid;grid-template-columns:164px minmax(0,1fr);gap:38px;align-items:start;padding:0 0 52px}.sidebar{position:sticky;top:28px;padding-top:4px}.sidebar-title{padding:0 14px 15px;color:#a1a5ab;font-size:10px;font-weight:600;letter-spacing:.18em}.sidebar a{display:flex;align-items:center;gap:12px;margin:3px 0;padding:11px 14px;border-radius:9px;color:#68707a;font-size:12px;transition:background .15s,color .15s}.sidebar a:first-of-type{background:#eef0f2;color:#30343a;font-weight:600}.sidebar a:hover{background:#f0f1f3;color:var(--ink)}.side-number{font-size:10px;color:#b1b5ba;font-variant-numeric:tabular-nums}.sidebar a:first-of-type .side-number{color:#787e87}
+    .directory{min-width:0}.category{scroll-margin-top:30px;margin:0 0 34px}.category-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 15px}.category h2{margin:0;font-size:15px;letter-spacing:-.02em;font-weight:650}.category-head span{font-size:10px;color:#a0a5ad}.category-head em{font-style:normal;font-size:10px;font-weight:400;color:#a1a5ab;margin-left:9px}.site-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .site{position:relative;display:flex;align-items:center;gap:13px;min-width:0;min-height:100px;padding:22px 17px;border:1px solid var(--line);border-radius:12px;background:var(--card);transition:transform .18s,border-color .18s,box-shadow .18s}.site:hover{transform:translateY(-2px);border-color:#cfd3d8;box-shadow:0 8px 20px #20212407}.site-badge{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border:1px solid #eef0f2;border-radius:10px;background:#f7f8f9;color:#4b515a;font-size:12px;font-weight:650;letter-spacing:-.03em}.site-copy{min-width:0;padding-right:8px}.site strong,.site small{display:block}.site strong{font-size:14px;font-weight:600;letter-spacing:-.01em;line-height:1.5}.site small{margin-top:5px;color:#6b7280;font-size:12px;line-height:1.6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.site-arrow{position:absolute;top:11px;right:12px;color:#c6cad0;font-size:12px;line-height:1}.site:hover .site-arrow{color:#747b85}
+    .source-note{margin:0;padding:22px 0 0;border-top:1px solid var(--line);color:#6b7280;font-size:11px;line-height:1.9}.source-note strong{font-weight:500;color:#7f858e}.footer{border-top:1px solid var(--line);background:#fff}.footer-row{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:78px;color:#6b7280;font-size:11px}.footer-links{display:flex;gap:20px}.footer a:hover{color:var(--ink)}:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+    body:has(.category:target) .sidebar a:first-of-type{background:transparent;color:#68707a;font-weight:400}
+    body:has(#favorites:target) .sidebar a[href=\"#favorites\"]{background:#eef0f2;color:#30343a;font-weight:600}
+    body:has(#news:target) .sidebar a[href=\"#news\"]{background:#eef0f2;color:#30343a;font-weight:600}
+    body:has(#media:target) .sidebar a[href=\"#media\"]{background:#eef0f2;color:#30343a;font-weight:600}
+    body:has(#study:target) .sidebar a[href=\"#study\"]{background:#eef0f2;color:#30343a;font-weight:600}
+    body:has(#life:target) .sidebar a[href=\"#life\"]{background:#eef0f2;color:#30343a;font-weight:600}
+    body:has(#cloud:target) .sidebar a[href=\"#cloud\"]{background:#eef0f2;color:#30343a;font-weight:600}
+    body:has(#tools:target) .sidebar a[href=\"#tools\"]{background:#eef0f2;color:#30343a;font-weight:600}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}.site:hover{transform:none}}
+    @media(max-width:980px){.wrap{width:calc(100% - 44px)}.layout{grid-template-columns:138px minmax(0,1fr);gap:24px}.site-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.site{min-height:100px}.header-row{height:76px}}
+    @media(max-width:700px){.wrap{width:calc(100% - 32px)}.header-row{height:72px}.brand{font-size:16px}.header-links{gap:18px;font-size:11px}.header-links a:last-child{display:none}.hero{padding:43px 0 32px}.hero h1{font-size:29px}.hero p{font-size:12px;margin:12px 0 23px}.eyebrow{font-size:9px}.search{padding-left:14px;border-radius:12px;gap:9px}.search button{padding:10px 18px}.search-shortcuts{font-size:10px;gap:14px}.layout{display:block;padding-bottom:34px}.sidebar{position:sticky;top:0;z-index:2;display:flex;gap:5px;margin:0 -16px 25px;padding:12px 16px;overflow-x:auto;background:#fafafaf2;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);scrollbar-width:none}.sidebar::-webkit-scrollbar{display:none}.sidebar-title,.side-number{display:none}.sidebar a{flex:none;margin:0;padding:8px 12px;font-size:11px;white-space:nowrap}.category{scroll-margin-top:77px;margin-bottom:28px}.category-head{margin-bottom:12px}.category h2{font-size:14px}.category-head span{font-size:9px}.site-grid{gap:10px}.site{display:block;min-height:145px;padding:17px 15px;border-radius:11px}.site-badge{width:34px;height:34px;font-size:11px;border-radius:9px}.site-copy{padding:10px 0 0}.site strong{font-size:14px}.site small{font-size:12px;margin-top:3px;white-space:normal;overflow:visible;line-height:1.6}.footer-row{align-items:flex-start;flex-direction:column;gap:8px;padding:22px 0;min-height:0}.source-note{font-size:11px}}
+    @media(max-width:350px){.site-grid{grid-template-columns:1fr}.site{display:flex;min-height:92px}.site-copy{padding:0}.hero h1{font-size:25px}}
   </style>
 </head>
 <body id=\"top\">
-  <div class=\"topbar\"><div class=\"wrap\"><span>清爽、实用的常用网址入口</span><div class=\"topbar-links\"><a href=\"#favorites\">常用网站</a><a href=\"#tools\">在线工具</a><a href=\"/OPEN_SOURCE_NOTICE.txt\">开源说明</a></div></div></div>
-  <header class=\"header\"><div class=\"wrap header-row\"><a class=\"brand\" href=\"/\"><span class=\"brand-mark\">N</span><span>网址导航<small>${domain} · ${theme_label}</small></span></a><div class=\"header-note\"><span class=\"status-dot\" aria-hidden=\"true\"></span>页面保持轻量，无广告与跟踪脚本</div></div></header>
+  <header class=\"header\"><div class=\"wrap header-row\"><a class=\"brand\" href=\"/\"><span class=\"brand-mark\" aria-hidden=\"true\"><svg viewBox=\"0 0 28 28\" fill=\"none\"><rect x=\"2\" y=\"2\" width=\"10\" height=\"10\" rx=\"3\" fill=\"currentColor\"/><rect x=\"16\" y=\"2\" width=\"10\" height=\"10\" rx=\"3\" fill=\"currentColor\" opacity=\".3\"/><rect x=\"2\" y=\"16\" width=\"10\" height=\"10\" rx=\"3\" fill=\"currentColor\" opacity=\".3\"/><rect x=\"16\" y=\"16\" width=\"10\" height=\"10\" rx=\"3\" fill=\"currentColor\"/></svg></span><span>网址导航<small>YOUR DAILY START</small></span></a><nav class=\"header-links\" aria-label=\"顶部导航\"><a href=\"#favorites\">网站目录</a><a href=\"#tools\">实用工具</a><a href=\"/OPEN_SOURCE_NOTICE.txt\">关于本站</a></nav></div></header>
   <main class=\"wrap\">
-    <section class=\"hero\" aria-labelledby=\"page-title\"><h1 id=\"page-title\">常用网址，一页直达</h1><p>搜索、资讯、影音、学习与生活服务，分类整理，打开即用）</p>
-      <form class=\"search\" action=\"https://www.bing.com/search\" method=\"get\"><span class=\"engine\">Bing</span><label class=\"sr-only\" for=\"search-query\">输入搜索内容</label><input id=\"search-query\" type=\"search\" name=\"q\" maxlength=\"120\" autocomplete=\"off\" enterkeyhint=\"search\" placeholder=\"输入关键词开始搜索\" required><button type=\"submit\">搜索</button></form>
-      <nav class=\"search-shortcuts\" aria-label=\"其他搜索入口\"><span>其他搜索）</span><a href=\"https://www.baidu.com/\" target=\"_blank\" rel=\"noopener noreferrer\">百度</a><a href=\"https://www.google.com/\" target=\"_blank\" rel=\"noopener noreferrer\">Google</a><a href=\"https://www.wikipedia.org/\" target=\"_blank\" rel=\"noopener noreferrer\">Wikipedia</a></nav>
+    <section class=\"hero\" aria-labelledby=\"page-title\"><div class=\"eyebrow\">LESS SEARCHING, MORE FINDING</div><h1 id=\"page-title\">常用网址，触手可及。</h1><p>一个简洁的起点，收藏每一天的常用。</p>
+      <form class=\"search\" action=\"https://www.bing.com/search\" method=\"get\"><svg class=\"search-icon\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><circle cx=\"10.8\" cy=\"10.8\" r=\"6.8\" stroke=\"currentColor\" stroke-width=\"1.7\"/><path d=\"m16 16 4.3 4.3\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/></svg><label class=\"sr-only\" for=\"search-query\">输入搜索内容</label><input id=\"search-query\" type=\"search\" name=\"q\" maxlength=\"120\" autocomplete=\"off\" enterkeyhint=\"search\" placeholder=\"搜索你想了解的内容\" required><button type=\"submit\">搜索</button></form>
+      <nav class=\"search-shortcuts\" aria-label=\"其他搜索入口\"><span>也可以使用</span><a href=\"https://www.baidu.com/\" target=\"_blank\" rel=\"noopener noreferrer\">百度</a><span class=\"dot\">·</span><a href=\"https://www.google.com/\" target=\"_blank\" rel=\"noopener noreferrer\">Google</a><span class=\"dot\">·</span><a href=\"https://www.wikipedia.org/\" target=\"_blank\" rel=\"noopener noreferrer\">Wikipedia</a></nav>
     </section>
-    <nav class=\"quick-strip\" aria-label=\"快捷入口\"><strong>快捷入口</strong><a href=\"https://www.baidu.com/\" target=\"_blank\" rel=\"noopener noreferrer\">百度</a><a href=\"https://www.bilibili.com/\" target=\"_blank\" rel=\"noopener noreferrer\">哔哩哔哩</a><a href=\"https://www.zhihu.com/\" target=\"_blank\" rel=\"noopener noreferrer\">知乎</a><a href=\"https://github.com/\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a><a href=\"https://mail.qq.com/\" target=\"_blank\" rel=\"noopener noreferrer\">QQ 邮箱</a><a href=\"https://www.taobao.com/\" target=\"_blank\" rel=\"noopener noreferrer\">淘宝</a><a href=\"https://www.jd.com/\" target=\"_blank\" rel=\"noopener noreferrer\">京东</a><a href=\"https://map.baidu.com/\" target=\"_blank\" rel=\"noopener noreferrer\">地图</a></nav>
     <div class=\"layout\">
-      <aside class=\"sidebar\" aria-label=\"网址分类\"><div class=\"sidebar-title\">网址分类</div><a href=\"#favorites\"><span class=\"side-icon\">●</span>常用推荐</a><a href=\"#news\"><span class=\"side-icon\">●</span>新闻资讯</a><a href=\"#media\"><span class=\"side-icon\">●</span>影音娱乐</a><a href=\"#study\"><span class=\"side-icon\">●</span>工作学习</a><a href=\"#life\"><span class=\"side-icon\">●</span>生活服务</a><a href=\"#cloud\"><span class=\"side-icon\">●</span>邮箱云盘</a><a href=\"#tools\"><span class=\"side-icon\">●</span>实用工具</a></aside>
+      <aside class=\"sidebar\" aria-label=\"网址分类\"><div class=\"sidebar-title\">EXPLORE / 网站分类</div><a href=\"#favorites\"><span class=\"side-number\">01</span>常用推荐</a><a href=\"#news\"><span class=\"side-number\">02</span>新闻资讯</a><a href=\"#media\"><span class=\"side-number\">03</span>影音娱乐</a><a href=\"#study\"><span class=\"side-number\">04</span>工作学习</a><a href=\"#life\"><span class=\"side-number\">05</span>生活服务</a><a href=\"#cloud\"><span class=\"side-number\">06</span>邮箱云盘</a><a href=\"#tools\"><span class=\"side-number\">07</span>实用工具</a></aside>
       <div class=\"directory\">
-        <section class=\"category\" id=\"favorites\" aria-labelledby=\"favorites-title\"><div class=\"category-head\"><h2 id=\"favorites-title\">常用推荐</h2><span>搜索、社区与知识入口</span></div><div class=\"site-grid\">
+        <section class=\"category\" id=\"favorites\" aria-labelledby=\"favorites-title\"><div class=\"category-head\"><h2 id=\"favorites-title\">常用推荐<em>06</em></h2><span>每一天，从这里开始</span></div><div class=\"site-grid\">
 ${favorites_html}
         </div></section>
-        <section class=\"category\" id=\"news\" aria-labelledby=\"news-title\"><div class=\"category-head\"><h2 id=\"news-title\">新闻资讯</h2><span>国内外综合资讯网站</span></div><div class=\"site-grid\">
+        <section class=\"category\" id=\"news\" aria-labelledby=\"news-title\"><div class=\"category-head\"><h2 id=\"news-title\">新闻资讯<em>06</em></h2><span>了解正在发生的事</span></div><div class=\"site-grid\">
 ${news_html}
         </div></section>
-        <section class=\"category\" id=\"media\" aria-labelledby=\"media-title\"><div class=\"category-head\"><h2 id=\"media-title\">影音娱乐</h2><span>视频、音乐与电影资料</span></div><div class=\"site-grid\">
+        <section class=\"category\" id=\"media\" aria-labelledby=\"media-title\"><div class=\"category-head\"><h2 id=\"media-title\">影音娱乐<em>06</em></h2><span>留一点时间给喜欢的内容</span></div><div class=\"site-grid\">
 ${media_html}
         </div></section>
-        <section class=\"category\" id=\"study\" aria-labelledby=\"study-title\"><div class=\"category-head\"><h2 id=\"study-title\">工作学习</h2><span>开发、设计与知识工具</span></div><div class=\"site-grid\">
+        <section class=\"category\" id=\"study\" aria-labelledby=\"study-title\"><div class=\"category-head\"><h2 id=\"study-title\">工作学习<em>06</em></h2><span>让灵感和效率都更近一点</span></div><div class=\"site-grid\">
 ${study_html}
         </div></section>
-        <section class=\"category\" id=\"life\" aria-labelledby=\"life-title\"><div class=\"category-head\"><h2 id=\"life-title\">生活服务</h2><span>购物、出行与日常查询</span></div><div class=\"site-grid\">
+        <section class=\"category\" id=\"life\" aria-labelledby=\"life-title\"><div class=\"category-head\"><h2 id=\"life-title\">生活服务<em>06</em></h2><span>照顾好日常的小事</span></div><div class=\"site-grid\">
 ${life_html}
         </div></section>
-        <section class=\"category\" id=\"cloud\" aria-labelledby=\"cloud-title\"><div class=\"category-head\"><h2 id=\"cloud-title\">邮箱云盘</h2><span>邮件、文件与在线协作</span></div><div class=\"site-grid\">
+        <section class=\"category\" id=\"cloud\" aria-labelledby=\"cloud-title\"><div class=\"category-head\"><h2 id=\"cloud-title\">邮箱云盘<em>06</em></h2><span>连接消息与文件</span></div><div class=\"site-grid\">
 ${cloud_html}
         </div></section>
-        <section class=\"category\" id=\"tools\" aria-labelledby=\"tools-title\"><div class=\"category-head\"><h2 id=\"tools-title\">实用工具</h2><span>测速、图片、文档与安全检查</span></div><div class=\"site-grid\">
+        <section class=\"category\" id=\"tools\" aria-labelledby=\"tools-title\"><div class=\"category-head\"><h2 id=\"tools-title\">实用工具<em>06</em></h2><span>一些顺手的小帮手</span></div><div class=\"site-grid\">
 ${tools_html}
         </div></section>
-        <div class=\"source-note\"><span><strong>使用提示：</strong>本站仅整理公开网址入口，不保存账号信息；外部网站的内容与服务由对应网站负责。</span><span>页面无广告、无统计、无第三方脚本</span></div>
+        <p class=\"source-note\"><strong>简单一点，专注内容。</strong> 本站仅整理公开网址，不保存账号信息。外部网站的内容与服务由对应网站负责。</p>
       </div>
     </div>
   </main>
-  <footer class=\"wrap\"><span>© ${year} ${domain} · 实用网址导航</span><span><a href=\"#top\">返回顶部</a> · <a href=\"/OPEN_SOURCE_NOTICE.txt\">开源说明</a></span></footer>
+  <footer class=\"footer\"><div class=\"wrap footer-row\"><span>© ${year} ${domain} · 网址导航</span><nav class=\"footer-links\" aria-label=\"页脚导航\"><span>${theme_label}</span><a href=\"#top\">返回顶部 ↑</a><a href=\"/OPEN_SOURCE_NOTICE.txt\">开源说明</a></nav></div></footer>
   <!-- build:${build_id} -->
 </body>
 </html>" || return 1
@@ -8565,14 +8567,15 @@ secure_site_conf_unset() {
 
 secure_site_regenerate_homepage() {
   secure_site_conf_is_managed || { warn "尚未使用轻量建站"; return 1; }
-  local domain="" template="4" selected="" backup=""
+  local domain="" template="5" selected="" backup=""
   domain="$(secure_site_conf_value DOMAIN)"
-  echo "  1) 经典蓝（推荐）"
+  echo "  1) 经典蓝"
   echo "  2) 清新绿"
   echo "  3) 暖橙色"
-  echo "  4) 随机配色（默认）"
-  read_tty template "选择导航配色 > " "4"
-  [[ "$template" =~ ^[1-4]$ ]] || { warn "模板选项无效"; return 1; }
+  echo "  4) 随机配色"
+  echo "  5) 简约白（默认）"
+  read_tty template "选择导航配色 > " "5"
+  [[ "$template" =~ ^[1-5]$ ]] || { warn "模板选项无效"; return 1; }
   ensure_dir "$SECURE_SITE_BACKUP_DIR" || { warn "无法创建首页备份目录"; return 1; }
   backup="${SECURE_SITE_BACKUP_DIR}/site-$(ts_now)"
   if [[ -d "$SECURE_SITE_ROOT" ]]; then
@@ -8889,7 +8892,7 @@ secure_site_migrate_legacy_site() {
   baseline="$(secure_site_conf_value PUBLIC_DNS_BASELINE 2>/dev/null || true)"
   [[ -n "$baseline" ]] || baseline="$(secure_site_conf_value DNS_BASELINE 2>/dev/null || true)"
   [[ -n "$baseline" ]] || baseline="$(secure_site_conf_value CDN_GUARD_BASELINE 2>/dev/null || true)"
-  [[ "$template" =~ ^[1-4]$ ]] || template=4
+  [[ "$template" =~ ^[1-5]$ ]] || template=4
   is_uint_in_range "$request_rate" 1 100 || request_rate=10
   is_uint_in_range "$connection_limit" 1 1000 || connection_limit=20
   [[ "$sni_reject_mode" == "strict" || "$sni_reject_mode" == "certificate" ]] || sni_reject_mode=certificate
@@ -9139,7 +9142,7 @@ secure_site_renew_certificate() {
 }
 
 secure_site_install_or_update() {
-  local domain="" email="" template="4" existing_domain="" is_existing=0
+  local domain="" email="" template="5" existing_domain="" is_existing=0
   local request_rate="" connection_limit="" conflict="" rollback="" selected_template=""
   local health_rc=0 ip_server_names="" dns_baseline="" current_baseline="" old_baseline=""
   local sni_reject_mode="certificate" dns_direct=0
@@ -9182,12 +9185,13 @@ secure_site_install_or_update() {
   fi
   read_tty email "Let's Encrypt 邮箱（可留空）> " ""
   valid_email_address "$email" || { warn "邮箱格式无效"; return 1; }
-  echo "  1) 经典蓝（推荐）"
+  echo "  1) 经典蓝"
   echo "  2) 清新绿"
   echo "  3) 暖橙色"
-  echo "  4) 随机配色（默认）"
+  echo "  4) 随机配色"
+  echo "  5) 简约白（默认）"
   read_tty template "选择导航配色 > " "$template"
-  [[ "$template" =~ ^[1-4]$ ]] || { warn "模板选项无效"; return 1; }
+  [[ "$template" =~ ^[1-5]$ ]] || { warn "模板选项无效"; return 1; }
 
   menu_section "DNS 检查"
   if ! secure_site_install_dns_query_tool; then
@@ -9472,7 +9476,7 @@ secure_site_menu() {
     menu_item "1" "状态与安全检查" "回源锁定、真实 DNS、证书、端口与防火墙"
     menu_item "2" "一键安装或修复" "生成导航站并固定本机域名回源"
     menu_item "3" "查看网站与安全信息" "访问地址、本机回源与安全措施"
-    menu_item "4" "重新生成导航首页" "三套无脚本配色，旧首页自动备份"
+    menu_item "4" "重新生成导航首页" "简约白与三套点缀色，旧首页自动备份"
     menu_item "5" "检查证书续期" "调用 Certbot；未到期不会强制申请"
     menu_item "6" "本机回源与端口" "回源锁定、真实 DNS、旧规则与端口修复"
     menu_item "7" "安全移除网站" "保留软件包、证书和完整备份"

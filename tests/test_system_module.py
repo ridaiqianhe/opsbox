@@ -139,9 +139,10 @@ exit 99
 
     def test_generated_site_and_proxy_configuration(self):
         with tempfile.TemporaryDirectory() as directory:
-            result = run('SECURE_SITE_ROOT="$TEST_ROOT"; secure_site_generate_homepage example.com 1',
+            result = run('SECURE_SITE_ROOT="$TEST_ROOT"; secure_site_generate_homepage example.com',
                          env={'TEST_ROOT': directory})
             self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout.strip(), '5')
             html = (Path(directory) / 'index.html').read_text()
             parser = HTMLParser()
             parser.feed(html)
