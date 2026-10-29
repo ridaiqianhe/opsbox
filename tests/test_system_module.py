@@ -173,7 +173,7 @@ class NavigationTests(unittest.TestCase):
         result = subprocess.run(
             ['bash', '-c', f'source {shlex.quote(str(ROOT / "opsbox.sh"))}; '
              'dispatch() { echo "ROUTE:$1"; }; network_tools_menu'],
-            input='4\n\n0\n', text=True, capture_output=True,
+            input='5\n0\n', text=True, capture_output=True,
         )
         self.assertIn('ROUTE:tcp', result.stdout)
         self.assertNotIn('ROUTE:proxy', result.stdout)

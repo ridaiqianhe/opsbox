@@ -3,6 +3,9 @@ set -uo pipefail
 
 SSHD_CONFIG=${SSHD_CONFIG:-/etc/ssh/sshd_config}
 SSHD_BIN=${SSHD_BIN:-/usr/sbin/sshd}
+SSH_MODULE_DIR=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=lib/ui.sh
+source "$SSH_MODULE_DIR/../../lib/ui.sh"
 
 reload_ssh() {
     if command -v systemctl >/dev/null 2>&1; then
@@ -118,16 +121,24 @@ show_settings() {
 main() {
     (( EUID == 0 )) || { echo '请使用 root 运行 SSH 管理。' >&2; return 1; }
     local choice result
+    ui_init
     while true; do
-        printf '\nSSH 管理\n1. 修改本地用户密码\n2. 修改 SSH 端口\n3. 查看全局 SSH 设置\n4. 启用密码登录\n5. 允许 root 登录\n0. 返回\n'
-        read -r -p '请选择 [0-5]: ' choice || return 0
+        ui_header 'SSH 快捷管理' '按需修改；密码通过系统 passwd 输入'
+        ui_item 1 '修改本地用户密码'
+        ui_item 2 '修改 SSH 端口'
+        ui_item 3 '查看全局 SSH 设置'
+        ui_item 4 '启用密码登录'
+        ui_item 5 '允许 root 登录'
+        ui_controls
+        ui_read choice || return $?
         case "$choice" in
             1) change_password ;; 2) change_port ;; 3) show_settings ;;
             4) enable_password_login ;; 5) enable_root_login ;;
             0) return 0 ;; *) echo '请输入有效选项。'; continue ;;
         esac
         result=$?
-        (( result == 0 )) || echo '操作未完成。' >&2
+        ui_status "$result"
+        ui_pause || return $?
     done
 }
 

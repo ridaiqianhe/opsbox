@@ -24,24 +24,36 @@ sudo bash opsbox.sh
 
 重新运行安装命令可更新工具箱，保留模块下的 `.env` 和 `data/`；更新源码不会重启服务。Git 工作副本使用 `git pull --ff-only` 更新。
 
-## 分类菜单
+## 菜单与快速操作
+
+首页直接放置常用工具，不必逐级寻找：
 
 ```text
-OpsBox
-├─ 1. 代理与转发       代理协议 / 随机 IPv6 SOCKS5 / Realm
-├─ 2. 网络与调优       网络诊断 / IPv6 / NAT66 / TCP / DNS / MTU
-├─ 3. 系统维护         系统与进程 / 端口 / Swap / 清理 / 更新
-├─ 4. SSH 与安全       快捷操作 / 密钥与审计 / 防火墙 / Fail2Ban
-├─ 5. 网站与反代       静态导航站 / HTTPS 反向代理
-├─ 6. 测试与云主机     性能与线路测试 / cloud-init / QGA
-├─ 7. 备份与恢复       配置快照 / 回滚 / 旧网站迁移
-└─ 8. 高影响操作       DD 重装系统
+OpsBox 1.2
+  1 系统概览       2 网络体检       3 监听端口
+  4 代理与转发     5 TCP / BBR      6 SSH 快捷管理
+  7 防火墙         8 HTTPS 反向代理
+
+  p 代理与转发     n 网络与调优     s 系统维护
+  a SSH 与安全     w 网站与反代     t 测试与云主机
+  r 备份与恢复     ! 高影响操作
 ```
 
-按用途归类，进入菜单不会自动安装服务、调整网络或迁移网站。`opsbox help` 可查看全部快捷命令，`opsbox version` 查看版本。
+- 输入 `snell`、`tcp`、`dns` 等工具名，可在菜单中直接打开；CLI 也支持 `opsbox snell`。
+- 输入 `/端口`、`/证书` 等关键词搜索，精确名称优先显示，再选结果打开。搜索不会自动执行唯一结果。
+- 输入 `.` 查看本次会话最近使用的工具。记录仅保存在内存，不写文件，不记录密码等自定义参数。
+- `0` / `b` 返回上一层，`h` 回首页，`q` 退出。系统、SSH 快捷管理、SOCKS5 和代理选择菜单共用这些控制键；独立协议安装器保留各自的内部菜单和返回键。
+- 从子菜单返回后直接显示上一级，省去重复“按回车返回”；查看结果时只停顿一次。
+
+菜单根据终端宽度收起说明；支持彩色终端、`NO_COLOR=1` 和 `TERM=dumb`。首页只读取本机系统、内存和磁盘信息，不为了显示状态联网或启动服务。
+
+其余功能仍按用途归类，进入菜单不会自动安装服务、调整网络或迁移网站。`opsbox help` 可查看全部快捷命令，`opsbox version` 查看版本。
 
 ```bash
-opsbox proxy snell          # 代理协议
+opsbox snell                # 直接进入 Snell（原命令 opsbox proxy snell 仍可用）
+opsbox overview             # 系统概览
+opsbox ports                # 监听端口
+opsbox find 证书            # 搜索工具
 opsbox ipv6 status         # 独立 Docker SOCKS5 状态
 opsbox network             # 网络诊断与修复菜单
 opsbox tcp                 # 统一 TCP / BBR 调优

@@ -70,6 +70,8 @@ class InstallerTests(unittest.TestCase):
                 files = {
                     "opsbox-main/opsbox.sh": "printf 'OpsBox installed\\n'\n",
                     "opsbox-main/modules/random-ipv6-socks/manage.sh": "true\n",
+                    "opsbox-main/lib/ui.sh": "true\n",
+                    "opsbox-main/lib/catalog.sh": "true\n",
                     "opsbox-main/README.md": "test\n",
                 }
                 for name, content in files.items():

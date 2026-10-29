@@ -30,6 +30,8 @@ fi
 mkdir "$work/source"
 tar -xzf "$work/source.tar.gz" --strip-components=1 -C "$work/source"
 test -f "$work/source/opsbox.sh"
+test -f "$work/source/lib/ui.sh"
+test -f "$work/source/lib/catalog.sh"
 test -f "$work/source/modules/random-ipv6-socks/manage.sh"
 mkdir -p "$destination"
 # .env and data/ are not distributed, so upgrades preserve runtime state.

@@ -10,14 +10,6 @@
 
 REPO_RAW="https://raw.githubusercontent.com/ridaiqianhe/opsbox/main/modules/vps-proxy"
 
-# --- 配色(二次元紫彩) ---
-PURPLE='\e[38;5;135m'; CYAN='\e[96m'; GREEN='\e[92m'; YELLOW='\e[93m'; BLUE='\e[94m'; GRAY='\e[90m'; NC='\e[0m'
-
-if [ "$(id -u)" != "0" ]; then
-    echo -e "${PURPLE}(>_<) 需要 root 权限哦，请用 sudo -i 切换到 root 再运行~${NC}" >&2
-    exit 1
-fi
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 
 fetch() {
@@ -32,65 +24,80 @@ run_script() {
         local content
         content=$(fetch "$REPO_RAW/$name")
         if [ -z "$content" ]; then
-            echo -e "${PURPLE}(；´Д｀) 下载 $name 失败，检查下网络？${NC}" >&2
+            printf '下载 %s 失败，请检查网络。\n' "$name" >&2
             return 1
         fi
         bash <(echo "$content")
     fi
 }
 
-banner() {
-    clear 2>/dev/null || true
-    echo ""
-    echo -e "${PURPLE}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "     ${CYAN}✨ VPS-Proxy 一键脚本合集 ✨${NC}   ${YELLOW}(｡･ω･｡)ﾉ${NC}"
-    echo -e "     ${GRAY}Snell · Hysteria2 · SS2022 · AnyTLS · SOCKS/HTTP${NC}"
-    echo -e "${PURPLE}  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo ""
+# shellcheck source=lib/ui.sh
+if [[ -r "$SCRIPT_DIR/../../lib/ui.sh" ]]; then
+    source "$SCRIPT_DIR/../../lib/ui.sh"
+    ui_init
+else
+    # Keep the documented standalone download usable without the full checkout.
+    ui_header() { printf '\nOpsBox / %s\n\n' "$1"; }
+    ui_item() { printf '%s. %s\n' "$1" "$2"; }
+    ui_controls() { printf '\n0 返回 · h 首页 · q 退出\n'; }
+    ui_read() {
+        local name="$1" value=""
+        read -r -p '选择 > ' value || return 21
+        case "$value" in h) return 20 ;; q) return 21 ;; b) value=0 ;; esac
+        printf -v "$name" '%s' "$value"
+    }
+    ui_pause() { read -r -p '按回车继续…' _; }
+    ui_status() { printf '操作退出码：%s\n' "$1"; }
+fi
+
+main() {
+    if (( EUID != 0 )); then
+        echo '代理服务管理需要 root，请使用 sudo opsbox proxy。' >&2
+        return 1
+    fi
+    local choice result
+    while true; do
+        ui_header '代理协议' '选择协议进入管理；退出协议后直接返回此页'
+        ui_item 1 'Snell' 'Surge · v5 / v6'
+        ui_item 2 'Hysteria2' 'QUIC / UDP'
+        ui_item 3 'Shadowsocks 2022' 'SS-rust'
+        ui_item 4 'AnyTLS' '通用 TLS'
+        ui_item 5 'TUIC v5'
+        ui_item 6 'Trojan'
+        ui_item 7 'VLESS Reality' 'Xray'
+        ui_item 8 'Shadow-TLS v3'
+        ui_item 9 'TCP / BBR 调优' '统一网络模块'
+        ui_item 10 'AnyTLS + Reality' 'sing-box'
+        ui_item 11 'SOCKS5 / HTTP / HTTPS'
+        ui_controls
+        ui_read choice || return $?
+        case "$choice" in
+            1) run_script snell.sh ;;
+            2) run_script hysteria2.sh ;;
+            3) run_script ss-2022.sh ;;
+            4) run_script anytls.sh ;;
+            5) run_script tuic.sh ;;
+            6) run_script trojan.sh ;;
+            7) run_script reality.sh ;;
+            8) run_script shadow-tls.sh ;;
+            9)
+                if [[ -f "$SCRIPT_DIR/../system/manage.sh" ]]; then
+                    bash "$SCRIPT_DIR/../system/manage.sh" tcp
+                else
+                    echo '请安装完整 OpsBox 后运行 opsbox tcp。'
+                fi ;;
+            10) run_script anytls-reality.sh ;;
+            11) run_script socks-http.sh ;;
+            0) return 0 ;;
+            *) echo '请输入有效选项。'; continue ;;
+        esac
+        result=$?
+        case "$result" in
+            20|21) return "$result" ;;
+            0|130) ;;
+            *) ui_status "$result"; ui_pause || return $? ;;
+        esac
+    done
 }
 
-while true; do
-    banner
-    echo -e "  ${GREEN}1.${NC} 🍥 Snell"
-    echo -e "  ${GREEN}2.${NC} 🚀 Hysteria2"
-    echo -e "  ${GREEN}3.${NC} 🧦 Shadowsocks 2022 (ss-rust)"
-    echo -e "  ${GREEN}4.${NC} 🎀 AnyTLS ${GRAY}(sing-box 服务端 · 通用客户端)${NC}"
-    echo -e "  ${GREEN}5.${NC} ⚡ TUIC v5"
-    echo -e "  ${GREEN}6.${NC} 🐴 Trojan"
-    echo -e "  ${GREEN}7.${NC} 💎 VLESS+Reality"
-    echo -e "  ${GREEN}8.${NC} 🛡️  Shadow-TLS v3 ${GRAY}(为已装 SS/Snell 加壳)${NC}"
-    echo -e "  ${GREEN}9.${NC} ⚙️  TCP 调优 ${GRAY}(OpsBox 统一模块)${NC}"
-    echo -e "  ${GREEN}10.${NC} 🧩 AnyTLS + Reality ${GRAY}(sing-box 专属)${NC}"
-    echo -e "  ${GREEN}11.${NC} 🌐 SOCKS5 / HTTP ${GRAY}(Mixed 内网 · HTTPS 公网)${NC}"
-    echo -e "  ${YELLOW}0.${NC} 👋 退出"
-    echo ""
-    read -r -p "$(echo -e "  ${CYAN}请输入选项 [0-11]: ${NC}")" choice || exit 0
-
-    case $choice in
-        1) run_script "snell.sh" ;;
-        2) run_script "hysteria2.sh" ;;
-        3) run_script "ss-2022.sh" ;;
-        4) run_script "anytls.sh" ;;
-        5) run_script "tuic.sh" ;;
-        6) run_script "trojan.sh" ;;
-        7) run_script "reality.sh" ;;
-        8) run_script "shadow-tls.sh" ;;
-        9)
-            if [[ -f "$SCRIPT_DIR/../system/manage.sh" ]]; then
-                bash "$SCRIPT_DIR/../system/manage.sh" tcp
-            else
-                echo '请安装完整 OpsBox 后运行 opsbox tcp。'
-            fi ;;
-        10) run_script "anytls-reality.sh" ;;
-        11) run_script "socks-http.sh" ;;
-        0) echo -e "  ${PURPLE}バイバイ~ (｡･ω･)ﾉﾞ${NC}"; exit 0 ;;
-        *)
-            echo -e "  ${YELLOW}(・_・?) 没有「$choice」这个选项，再选一次吧~${NC}"
-            sleep 1
-            continue
-            ;;
-    esac
-
-    echo ""
-    read -r -p "$(echo -e "  ${GRAY}按回车返回主菜单...${NC}")" _ || exit 0
-done
+main "$@"

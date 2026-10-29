@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -uo pipefail
-cd -- "$(dirname -- "${BASH_SOURCE[0]}")" || exit 1
+IPV6_MODULE_DIR=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+cd -- "$IPV6_MODULE_DIR" || exit 1
+# shellcheck source=lib/ui.sh
+source "$IPV6_MODULE_DIR/../../lib/ui.sh"
 
 setup() {
     if [[ ! -f .env ]]; then
@@ -39,10 +42,18 @@ action() {
 main() {
     if (( $# )); then action "$@"; return; fi
     local choice result
+    ui_init
     while true; do
-        printf '\n随机 IPv6 SOCKS5\n'
-        printf '1. 配置账号和端口\n2. 安装 / 更新\n3. 查看状态\n4. 查看日志\n5. 重启\n6. 停止\n7. 卸载容器\n0. 返回\n'
-        read -r -p '请选择 [0-7]: ' choice || return 0
+        ui_header '随机 IPv6 SOCKS5' '独立 Docker 容器 · Xray 随机出口'
+        ui_item 1 '配置账号和端口'
+        ui_item 2 '安装 / 更新'
+        ui_item 3 '查看状态'
+        ui_item 4 '查看日志' 'Ctrl+C 停止跟踪'
+        ui_item 5 '重启'
+        ui_item 6 '停止'
+        ui_item 7 '卸载容器' '保留配置和日志'
+        ui_controls
+        ui_read choice || return $?
         case "$choice" in
             1) action setup ;; 2) action install ;; 3) action status ;;
             4) action logs ;; 5) action restart ;; 6) action stop ;;
@@ -50,7 +61,9 @@ main() {
             *) echo '请输入有效选项。'; continue ;;
         esac
         result=$?
-        (( result == 0 )) || printf '操作未完成（退出码 %s）。\n' "$result" >&2
+        ui_status "$result"
+        # Returning from an editor/log follower needs no extra acknowledgement.
+        if [[ "$choice" != 1 && "$choice" != 4 ]]; then ui_pause || return $?; fi
     done
 }
 

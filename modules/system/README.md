@@ -6,6 +6,8 @@
 
 | 功能 | 命令 |
 | --- | --- |
+| 直接查看系统 / 网络 / 端口 | `opsbox overview`、`opsbox check`、`opsbox ports` |
+| CPU / 内存排行 / 服务健康 | `opsbox cpu`、`opsbox memory`、`opsbox services` |
 | 网络诊断、修复、IPv4/IPv6 优先级 | `opsbox network` |
 | IPv6 开关与修复 | `opsbox ipv6-system` |
 | 地址池、宿主机 NAT66 随机出网 | `opsbox nat66` |
@@ -23,6 +25,8 @@
 | DD 重装系统 | `opsbox dd` |
 
 需要 Linux、Bash 4+ 和 root。具体操作按需安装相应依赖；并非所有功能都适用于全部发行版。cloud-init 的 DMIT/PVE 配套配置仅用于相符的云主机环境；路由器固件及 macOS 不在此模块的运行范围内。
+
+菜单支持 `0/b` 返回、`h` 回 OpsBox 首页、`q` 退出；普通配置字段中的 h/q 仍按输入值处理。结果页只停顿一次，CLI 直接查看命令不额外等待按键。
 
 ## 整合行为
 

@@ -8,22 +8,27 @@ source "$MODULE_DIR/core.sh"
 set +e
 set -uo pipefail
 export RUN_MODE=menu
+# shellcheck source=lib/ui.sh
+source "$MODULE_DIR/../../lib/ui.sh"
+ui_init
+c_reset=$UI_RESET; c_dim=$UI_DIM; c_bold=$UI_BOLD; c_cyan=$UI_ACCENT; c_green=$UI_GOOD; c_yellow=$UI_WARN; c_white=$UI_BOLD
 
-# One visual language across all imported submenus.
-menu_header() {
-    printf '\n  OpsBox / %s\n' "$1"
-    [[ -z "${2:-}" ]] || printf '  %s\n' "$2"
-    printf '  ────────────────────────────────────────\n'
-}
-menu_section() { printf '\n  %s\n' "$1"; }
-menu_item() { printf '  %2s. %-s' "$1" "$2"; [[ -z "${3:-}" ]] || printf ' — %s' "$3"; printf '\n'; }
-menu_rule() { printf '  ────────────────────────────────────────\n'; }
-menu_back_item() { printf '\n   0. 返回上级\n'; }
+# Shared presentation; business functions remain in core.sh.
+menu_header() { ui_header "$@"; }
+menu_section() { ui_section "$@"; }
+menu_item() { ui_item "$@"; }
+menu_rule() { ui_rule; }
+menu_back_item() { ui_controls; }
 print_kv() { printf '  %s：%s\n' "$1" "$2"; }
 
 # Abort on closed input, including in nested prompts, instead of choosing defaults.
 read_tty() {
     local __opsbox_name="$1" __opsbox_prompt="$2" __opsbox_fallback="${3:-}" __opsbox_value=""
+    case "$__opsbox_prompt" in
+        '请输入编号 > '|'请选择 ['*': ')
+            ui_read "$__opsbox_name" || exit $?
+            return 0 ;;
+    esac
     if has_tty; then
         IFS= read -r -p "$__opsbox_prompt" __opsbox_value </dev/tty || exit 0
     else
@@ -42,11 +47,7 @@ read_tty_secret() {
     printf -v "$__opsbox_name" '%s' "$__opsbox_value"
 }
 
-pause_for_return() {
-    local reply=""
-    read_tty reply '按回车返回…' ''
-    : "$reply"
-}
+pause_for_return() { ui_pause || exit $?; }
 
 restore_menu() {
     local choice=""
@@ -83,6 +84,13 @@ tcp_legacy() { bash "$MODULE_DIR/../vps-proxy/tcp-tune.sh"; }
 
 system_dispatch() {
     case "${1:-help}" in
+        overview) system_overview ;;
+        check) health_check_only ;;
+        ports) listening_ports ;;
+        port-check) port_lookup ;;
+        cpu) processes_top_cpu ;;
+        memory) processes_top_memory ;;
+        services) failed_services_status ;;
         network) network_menu ;;
         ipv6-system) ipv6_menu ;;
         nat66) ipv6_tools_menu ;;
