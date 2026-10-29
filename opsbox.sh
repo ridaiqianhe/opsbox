@@ -68,10 +68,10 @@ run_module() {
 
 # Menus carry fixed commands, never arbitrary shell expressions.
 catalog_lookup() {
-    local wanted="$1" row id label command terms kind
+    local wanted="$1" row id label command _terms kind
     REPLY_LABEL='' REPLY_KIND=menu
     while IFS= read -r row; do
-        IFS='|' read -r id label command terms kind <<< "$row"
+        IFS='|' read -r id label command _terms kind <<< "$row"
         if [[ "$wanted" == "$id" || "$wanted" == "$command" ]]; then
             REPLY_LABEL=$label; REPLY_KIND=$kind; REPLY_COMMAND=$command
             return 0
@@ -134,7 +134,7 @@ recent_menu() {
     fi
 }
 search_menu() {
-    local query="${1:-}" needle row id label command terms kind searchable choice index start end total page=0 result
+    local query="${1:-}" needle row id label command _terms kind searchable choice index start end total page=0 result
     local -a matches=() exact=() related=()
     if [[ -z "$query" ]]; then
         printf '\n  搜索工具（名称 / 关键词，留空返回）：' >&2
@@ -145,7 +145,7 @@ search_menu() {
     while IFS= read -r row; do
         searchable=$(printf '%s' "$row" | tr '[:upper:]' '[:lower:]')
         [[ "$searchable" == *"$needle"* ]] || continue
-        IFS='|' read -r id label command terms kind <<< "$row"
+        IFS='|' read -r id label command _terms kind <<< "$row"
         if [[ "$needle" == "$(printf '%s' "$id" | tr '[:upper:]' '[:lower:]')" ||
               "$needle" == "$(printf '%s' "$label" | tr '[:upper:]' '[:lower:]')" ||
               "$needle" == "$command" ]]; then
@@ -167,7 +167,7 @@ search_menu() {
         start=$((page * 10)); end=$((start + 10))
         (( end <= total )) || end=$total
         for ((index=start; index<end; index++)); do
-            IFS='|' read -r id label command terms kind <<< "${matches[index]}"
+            IFS='|' read -r id label command _terms kind <<< "${matches[index]}"
             [[ "$kind" != danger ]] || label+=" [高风险]"
             ui_item "$((index - start + 1))" "$label" "$command"
         done
@@ -180,7 +180,7 @@ search_menu() {
             p) (( page == 0 )) || page=$((page - 1)); continue ;;
         esac
         if [[ "$choice" =~ ^([1-9]|10)$ ]] && (( choice <= end - start )); then
-            IFS='|' read -r id label command terms kind <<< "${matches[start + choice - 1]}"
+            IFS='|' read -r id label command _terms kind <<< "${matches[start + choice - 1]}"
             perform_command "$command" || return $?
         fi
     done

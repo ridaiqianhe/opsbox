@@ -4,6 +4,8 @@ OPSBOX_VERSION=${OPSBOX_VERSION:-1.2.0}
 OPSBOX_HOME_RC=20
 OPSBOX_QUIT_RC=21
 UI_RESET='' UI_BOLD='' UI_ACCENT='' UI_DIM='' UI_GOOD='' UI_WARN=''
+# Consumed by the imported system-module status messages.
+export UI_GOOD
 
 ui_init() {
     if [[ -z ${NO_COLOR:-} && ${TERM:-dumb} != dumb ]] && { [[ -t 1 ]] || [[ ${OPSBOX_COLOR:-auto} == always ]]; }; then
