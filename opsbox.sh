@@ -2,7 +2,7 @@
 set -uo pipefail
 
 OPSBOX_ROOT=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-VERSION=1.2.0
+VERSION=1.3.0
 export OPSBOX_VERSION=$VERSION
 # shellcheck source=lib/ui.sh
 source "$OPSBOX_ROOT/lib/ui.sh"
@@ -270,7 +270,7 @@ diagnostics_menu() {
 }
 danger_menu() {
     section_menu '高影响操作' \
-        'DD 重装系统|dd|清空系统盘；需要控制台和二次确认'
+        'DD 重装系统 [高风险]|dd|清空系统盘；需要控制台和二次确认'
 }
 
 dispatch() {
@@ -315,7 +315,7 @@ dispatch() {
 
 main() {
     local choice target result summary
-    local -a quick=(overview check ports connections tcp ssh firewall reverse-proxy)
+    local -a quick=(overview check ports connections tcp ssh firewall reverse-proxy dd)
     if (( $# )); then
         dispatch "$@"; result=$?
         case "$result" in 20) main ;; 21) return 0 ;; *) return "$result" ;; esac
@@ -333,16 +333,23 @@ main() {
         ui_item 6 'SSH 快捷管理'
         ui_item 7 '防火墙'
         ui_item 8 'HTTPS 反向代理'
+        ui_item 9 'DD 重装系统 [高风险]' '清空系统盘 · 需输入 DD 确认' danger
         ui_section '全部分类'
         if (( $(ui_columns) >= 76 )); then
-            printf '  p 代理与转发   n 网络与调优   s 系统维护   a SSH 与安全\n'
-            printf '  w 网站与反代   t 测试与云主机 r 备份与恢复 ! 高影响操作\n'
+            ui_category_pair p '代理与转发' n '网络与调优'
+            ui_category_pair s '系统维护  ' a 'SSH 与安全'
+            ui_category_pair w '网站与反代' t '测试与云主机'
+            ui_category_pair r '备份与恢复' '!' '高影响操作'
         else
             ui_item p '代理与转发'; ui_item n '网络与调优'; ui_item s '系统维护'; ui_item a 'SSH 与安全'
             ui_item w '网站与反代'; ui_item t '测试与云主机'; ui_item r '备份与恢复'; ui_item '!' '高影响操作'
         fi
         ui_section '快捷操作'
-        printf '  直接输入 snell / tcp / dns 等命令 · /关键词 搜索\n'
+        if (( $(ui_columns) >= 60 )); then
+            printf '  直接输入 snell / tcp / dns 等命令 · /关键词 搜索\n'
+        else
+            printf '  输入工具名直达 · /关键词 搜索\n'
+        fi
         printf '  . 最近使用 · ? 帮助 · 0/q 退出\n'
         ui_rule
         ui_read choice; result=$?
@@ -354,7 +361,7 @@ main() {
             /*) search_menu "${choice#/}"; result=$? ;;
             .) recent_menu; result=$? ;;
             *)
-                if [[ "$choice" =~ ^[1-8]$ ]]; then
+                if [[ "$choice" =~ ^[1-9]$ ]]; then
                     target=${quick[choice - 1]}
                     perform_command "$target"; result=$?
                 elif resolve_shortcut "$choice"; then

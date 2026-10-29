@@ -1,18 +1,27 @@
 #!/usr/bin/env bash
 # Shared, dependency-free terminal presentation. Importing this file has no side effects.
-OPSBOX_VERSION=${OPSBOX_VERSION:-1.2.0}
+OPSBOX_VERSION=${OPSBOX_VERSION:-1.3.0}
 OPSBOX_HOME_RC=20
 OPSBOX_QUIT_RC=21
 UI_RESET='' UI_BOLD='' UI_ACCENT='' UI_DIM='' UI_GOOD='' UI_WARN=''
+UI_SECONDARY='' UI_DANGER=''
 # Consumed by the imported system-module status messages.
 export UI_GOOD
 
 ui_init() {
+    UI_RESET='' UI_BOLD='' UI_ACCENT='' UI_DIM='' UI_GOOD='' UI_WARN=''
+    UI_SECONDARY='' UI_DANGER=''
     if [[ -z ${NO_COLOR:-} && ${TERM:-dumb} != dumb ]] && { [[ -t 1 ]] || [[ ${OPSBOX_COLOR:-auto} == always ]]; }; then
-        UI_RESET=$'\033[0m'; UI_BOLD=$'\033[1m'; UI_ACCENT=$'\033[36m'
+        UI_RESET=$'\033[0m'; UI_BOLD=$'\033[1m'; UI_ACCENT=$'\033[35m'
+        UI_SECONDARY=$'\033[96m'; UI_DANGER=$'\033[91m'
         UI_DIM=$'\033[90m'; UI_GOOD=$'\033[32m'; UI_WARN=$'\033[33m'
+        case "${TERM:-}" in
+            *256color*|*direct*)
+                UI_ACCENT=$'\033[38;5;183m'; UI_SECONDARY=$'\033[38;5;117m' ;;
+        esac
     fi
 }
+ui_anime() { [[ ${OPSBOX_THEME:-anime} != plain ]]; }
 ui_columns() {
     local columns=${COLUMNS:-80}
     [[ $columns =~ ^[0-9]{2,3}$ ]] || columns=80
@@ -31,20 +40,44 @@ ui_header() {
     if [[ -t 1 && ${TERM:-dumb} != dumb && ${OPSBOX_CLEAR:-1} != 0 ]]; then
         printf '\033[2J\033[H'
     fi
-    printf '\n  %s%sOpsBox%s  %sv%s%s\n' "$UI_BOLD" "$UI_ACCENT" "$UI_RESET" "$UI_DIM" "$OPSBOX_VERSION" "$UI_RESET"
-    printf '  %s%s%s\n' "$UI_BOLD" "$title" "$UI_RESET"
+    if ui_anime; then
+        printf '\n  %s%s✦ OpsBox%s  %sv%s%s' "$UI_BOLD" "$UI_ACCENT" "$UI_RESET" "$UI_DIM" "$OPSBOX_VERSION" "$UI_RESET"
+        if (( $(ui_columns) >= 60 )); then
+            printf '  %s· 星光工具箱%s' "$UI_SECONDARY" "$UI_RESET"
+        fi
+        printf '\n  %s(ฅ\047ω\047ฅ)%s  %s%s%s\n' "$UI_ACCENT" "$UI_RESET" "$UI_BOLD" "$title" "$UI_RESET"
+    else
+        printf '\n  %s%sOpsBox%s  %sv%s%s\n' "$UI_BOLD" "$UI_ACCENT" "$UI_RESET" "$UI_DIM" "$OPSBOX_VERSION" "$UI_RESET"
+        printf '  %s%s%s\n' "$UI_BOLD" "$title" "$UI_RESET"
+    fi
     [[ -z $description ]] || printf '  %s%s%s\n' "$UI_DIM" "$description" "$UI_RESET"
     ui_rule
 }
-ui_section() { printf '\n  %s%s%s\n' "$UI_ACCENT" "$1" "$UI_RESET"; }
+ui_section() {
+    local marker=''
+    if ui_anime; then marker='✧ '; fi
+    printf '\n  %s%s%s%s\n' "$UI_SECONDARY" "$marker" "$1" "$UI_RESET"
+}
 ui_item() {
-    printf '  %s%2s%s  %s' "$UI_ACCENT" "$1" "$UI_RESET" "$2"
+    local accent=$UI_ACCENT text_color=''
+    if [[ ${4:-} == danger ]]; then accent=$UI_DANGER; text_color=$UI_DANGER; fi
+    if ui_anime; then
+        printf '  %s[%2s]%s  ' "$accent" "$1" "$UI_RESET"
+    else
+        printf '  %s%2s%s  ' "$accent" "$1" "$UI_RESET"
+    fi
+    printf '%s%s%s' "$text_color" "$2" "$UI_RESET"
     if [[ -n ${3:-} ]]; then
         if (( $(ui_columns) >= 76 )); then
             printf '  %s%s%s' "$UI_DIM" "$3" "$UI_RESET"
         fi
     fi
     printf '\n'
+}
+ui_category_pair() {
+    # Fixed-width Chinese labels keep the two columns aligned without padding ANSI bytes.
+    printf '  %s[%s]%s %s    %s[%s]%s %s\n' \
+        "$UI_ACCENT" "$1" "$UI_RESET" "$2" "$UI_ACCENT" "$3" "$UI_RESET" "$4"
 }
 ui_controls() {
     ui_rule

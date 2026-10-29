@@ -41,6 +41,28 @@ class MenuNavigationTests(unittest.TestCase):
         self.assertIn('EXEC:proxy snell', result.stdout)
         self.assertNotIn('回车继续', result.stderr)
 
+    def test_home_nine_opens_dd_without_intermediate_category(self):
+        result = root_run('run_module() { printf "MODULE:%s\\n" "$*"; return 130; }; main', '9\nq\n')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.count('MODULE:system/manage.sh dd'), 1)
+        self.assertIn('DD 重装系统 [高风险]', result.stdout)
+        self.assertNotIn('回车继续', result.stderr)
+
+    def test_dd_cancellation_never_reaches_download_or_install(self):
+        result = module_run(
+            'has_tty() { return 0; }; '
+            'read_tty() { IFS= read -r "$1"; }; '
+            'read_tty_secret() { IFS= read -r "$1"; }; '
+            'ssh_current_ports() { echo 22; }; '
+            'have_cmd() { echo MUTATION; return 0; }; '
+            'wget() { echo MUTATION; }; '
+            'dd_reinstall',
+            '2\n22\n2\nexample-password\ncancel\n',
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('已取消', result.stdout)
+        self.assertNotIn('MUTATION', result.stdout)
+
     def test_home_and_quit_propagate_across_category_and_module(self):
         home = root_run('run_module() { echo "MODULE:$*"; return 20; }; main', 'p\n1\nq\n')
         self.assertEqual(home.returncode, 0, home.stderr)
@@ -82,7 +104,8 @@ class MenuNavigationTests(unittest.TestCase):
         result = root_run(
             'dispatch() { :; }; '
             'perform_command snell; perform_command tcp; perform_command snell; '
-            'perform_command snapshot; printf "RECENT:%s\\n" "${OPSBOX_RECENT[@]}"', '\n',
+            'perform_command snapshot; perform_command dd; '
+            'printf "RECENT:%s\\n" "${OPSBOX_RECENT[@]}"', '\n\n',
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         recents = [line for line in result.stdout.splitlines() if line.startswith('RECENT:')]
