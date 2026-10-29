@@ -79,9 +79,12 @@ change_port() {
     local port answer
     read -r -p '新的 SSH 端口 [1-65535，空白取消]: ' port || return 1
     [[ -n "$port" ]] || return 0
-    [[ "$port" =~ ^[0-9]{1,5}$ ]] && (( 10#$port >= 1 && 10#$port <= 65535 )) || {
-        echo '端口无效。' >&2; return 1;
-    }
+    if [[ ! "$port" =~ ^[0-9]{1,5}$ ]]; then
+        echo '端口无效。' >&2; return 1
+    fi
+    if (( 10#$port < 1 || 10#$port > 65535 )); then
+        echo '端口无效。' >&2; return 1
+    fi
     port=$((10#$port))
     echo '请先在云安全组和防火墙放行新端口，保留当前连接直到新连接验证成功。'
     if command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet ssh.socket; then

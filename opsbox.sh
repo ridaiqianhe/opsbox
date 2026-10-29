@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-OPSBOX_ROOT=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+OPSBOX_ROOT=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 VERSION=1.0.0
 
 usage() {
