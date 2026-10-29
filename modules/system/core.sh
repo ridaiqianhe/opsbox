@@ -4,7 +4,8 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-SCRIPT_NAME="opsbox"
+# Keep historical ownership markers compatible with deployed DMITBox files.
+SCRIPT_NAME="dmitbox.sh"
 SCRIPT_VERSION="2026.08.14"
 AD_TEXT="DMIT 交流程  https://t.me/DmitChat"
 
@@ -3665,7 +3666,7 @@ ssh_dropin_ensure() {
   fi
   if [[ -f "$SSH_LEGACY_DROPIN_FILE" ]] && grep -Fq "managed by ${SCRIPT_NAME}" "$SSH_LEGACY_DROPIN_FILE" 2>/dev/null; then
     rm -f "$SSH_LEGACY_DROPIN_FILE" || { warn "无法清理本脚本旧的 SSH 管理文件"; return 1; }
-    info "已清理本脚本旧版 99-dmitbox.conf，其他 SSH 配置未改为"
+    info "已清理本脚本旧版 99-dmitbox.conf，其他 SSH 配置未改动"
   fi
   chown root:root "$SSH_DROPIN_FILE" >/dev/null 2>&1 || { warn "无法设置 SSH 管理配置所有权"; return 1; }
   chmod 600 "$SSH_DROPIN_FILE" >/dev/null 2>&1 || { warn "无法设置 SSH 管理配置权限"; return 1; }
@@ -4676,7 +4677,7 @@ ssh_enable_password_keep_key_for_user() {
   ssh_backup_once || return 1
 
   warn "中等模式：开启密码登录（保留密钥登录）"
-  warn "密码认证属于全局开关；选择： root 用户时，root 仍会保持禁止密码"
+  warn "密码认证属于全局开关；选择非 root 用户时，root 仍会保持禁止密码"
   warn "建议保持当前 SSH 会话不要断开，确认密码可登录后再退出"
 
   if [[ "$mode" == "random" ]]; then passwd="$(ssh_random_pass)"; fi
@@ -4986,7 +4987,7 @@ ssh_menu() {
     menu_section "密钥与加固"
     menu_item "4" "登录密钥管理" "查看、添加、移除与权限修复"
     menu_item "5" "一键推荐加固" "验证公钥后关闭密码认证，失败自动回滚"
-    menu_item "6" "创建普通用户" "普通用户密码登录，root 保持仅密码"
+    menu_item "6" "创建普通用户" "普通用户密码登录，root 保持仅密钥"
     menu_item "7" "开启密码登录" "保留公钥；非 root 操作不放开 root 密码"
     menu_section "连接与恢复"
     menu_item "8" "更换 SSH 端口" "验证监听并安全处理常用防火墙"
@@ -5831,7 +5832,7 @@ swapfile_create() {
   if [[ -e "$SWAP_FILE" ]]; then
     if swapfile_is_active && ! swapoff "$SWAP_FILE"; then
       rm -f "$tmp_file" >/dev/null 2>&1 || true
-      warn "无法停用户 Swap，已取消调整"
+      warn "无法停用 Swap，已取消调整"
       return 1
     fi
     mv "$SWAP_FILE" "$old_file" || { rm -f "$tmp_file"; return 1; }
@@ -7077,7 +7078,7 @@ secure_site_cleanup_legacy_firewall_on_start() {
   secure_site_legacy_firewall_present || return 0
   if secure_site_guard_remove_firewall_rules; then
     ok "已清理旧版建站功能遗留的 nftables/iptables 拦截规则"
-    info "仅删除 dmitbox_cdn_guard / DMITBOX_CDN_GUARD；其他防火墙规则未改为"
+    info "仅删除 dmitbox_cdn_guard / DMITBOX_CDN_GUARD；其他防火墙规则未改动"
   else
     warn "发现旧版建站防火墙规则，但未能完整清理"
     warn "请进入“系统状态与端口 → 端口访问修复”再次检查"
@@ -10061,7 +10062,7 @@ reverse_proxy_install_or_update() {
   fi
 
   conflict="$(reverse_proxy_domain_conflict "$domain" "$nginx_file" || true)"
-  [[ -z "$conflict" ]] || { warn "域名已被其他 Nginx 配置使用户${conflict}"; return 1; }
+  [[ -z "$conflict" ]] || { warn "域名已被其他 Nginx 配置使用：${conflict}"; return 1; }
   [[ "$backend_type" == "remote" ]] && backend_choice=2 || backend_choice=1
   echo "  1) 本机服务器127.0.0.1 指定端口："
   echo "  2) 远程网站（完整 http/https URL）"
@@ -11562,7 +11563,7 @@ common_firewall_disable_ui() {
       fi
       ;;
   esac
-  ok "防火墙已停用户${backend}"
+  ok "防火墙已停用：${backend}"
 }
 
 common_firewall_menu() {

@@ -90,6 +90,20 @@ exit 99
         self.assertNotIn('\nmain "$@"', text)
         self.assertNotIn('_legacy_autostop_unused', text)
 
+    def test_existing_ssh_ownership_marker_is_recognized(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / '00-dmitbox.conf'
+            original = '# managed by dmitbox.sh\nPasswordAuthentication no\n'
+            path.write_text(original)
+            result = run(
+                'SSH_DROPIN_DIR="$TEST_ROOT"; SSH_DROPIN_FILE="$TEST_ROOT/00-dmitbox.conf"; '
+                'SSH_LEGACY_DROPIN_FILE="$TEST_ROOT/99-dmitbox.conf"; '
+                'chown() { :; }; chmod() { :; }; ssh_dropin_ensure',
+                env={'TEST_ROOT': directory},
+            )
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+            self.assertEqual(path.read_text(), original)
+
     def test_embedded_python_is_parseable(self):
         text = CORE.read_text()
         scripts = re.findall(r"python3[^\n]*<<'PY'[^\n]*\n(.*?)\nPY\n", text, re.S)
